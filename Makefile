@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -ansi -pedantic
+CFLAGS=-Wall -ansi -pedantic -Isrc
 LFLAGS=-lm
 
 SRCDIR=src
@@ -15,11 +15,17 @@ clean:
 run:	$(EXENAME)
 	./$(EXENAME)
 
-OBJFILES=$(OBJDIR)/main.o
+OBJFILES=$(OBJDIR)/main.o $(OBJDIR)/pixmap.o $(OBJDIR)/bmp_writer.o
 
 
 $(EXENAME):	$(OBJFILES)
 	$(CC) -o $@ $^ $(LFLAGS)
 
 $(OBJDIR)/main.o:	$(SRCDIR)/main.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJDIR)/pixmap.o:	$(SRCDIR)/pixmap.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJDIR)/bmp_writer.o:	$(SRCDIR)/exporters/bmp_writer.c
 	$(CC) $(CFLAGS) -c $< -o $@
