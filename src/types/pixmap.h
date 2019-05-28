@@ -1,7 +1,7 @@
 /* vim: set fileencoding=utf-8 tabstop=8 noexpandtab */
 
-#ifndef _PIXMAP_TYPE_H_
-#define _PIXMAP_TYPE_H_
+#ifndef _pixmap_type_h_
+#define _pixmap_type_h_
 
 typedef struct
 {
