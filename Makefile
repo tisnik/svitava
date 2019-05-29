@@ -9,13 +9,13 @@ EXENAME=svitava
 all:	$(EXENAME)
 
 clean:
-	rm $(OBJDIR)/*.o
-	rm $(EXENAME)
+	rm -f $(OBJDIR)/*.o
+	rm -f $(EXENAME)
 
 run:	$(EXENAME)
 	./$(EXENAME)
 
-OBJFILES=$(OBJDIR)/main.o $(OBJDIR)/pixmap.o $(OBJDIR)/bmp_writer.o
+OBJFILES=$(OBJDIR)/main.o $(OBJDIR)/pixmap.o $(OBJDIR)/bmp_writer.o $(OBJDIR)/mandelbrot.o
 
 
 $(EXENAME):	$(OBJFILES)
@@ -28,4 +28,7 @@ $(OBJDIR)/pixmap.o:	$(SRCDIR)/pixmap.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJDIR)/bmp_writer.o:	$(SRCDIR)/exporters/bmp_writer.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJDIR)/mandelbrot.o:	$(SRCDIR)/renderers/mandelbrot.c
 	$(CC) $(CFLAGS) -c $< -o $@
