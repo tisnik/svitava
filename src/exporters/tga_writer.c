@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "bitmap.h"
-
 unsigned char true_color_tga_header[] =
 {
     0x00,       /* without ID */
