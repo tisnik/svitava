@@ -6,7 +6,7 @@
 unsigned char bmp_header[] =
 {
     0x42, 0x4d,             /* magic number */
-    0x46, 0x00, 0x00, 0x00, /* size of header=70 bytes */
+    0x46, 0x00, 0x00, 0x00, /* size of BMP file */
     0x00, 0x00,             /* unused */
     0x00, 0x00,             /* unused */
     0x36, 0x00, 0x00, 0x00, /* 54 bytes - offset to data */
@@ -23,23 +23,38 @@ unsigned char bmp_header[] =
     0x00, 0x00, 0x00, 0x00, /* important colors */
 };
 
+void write4bytes(unsigned char *array, int offset, int value)
+{
+    array[offset] =  value & 0xff;
+    array[offset+1] = (value >> 8) & 0xff;
+    array[offset+2] = (value >> 16) & 0xff;
+    array[offset+3] = (value >> 24) & 0xff;
+}
+
 int bmp_write_to_stream(const Pixmap *pixmap, FILE *fout)
 {
     int width, height, bpp;
+    int pixel_array_size = pixmap_size(pixmap);
+    int bmp_size = pixel_array_size + sizeof(bmp_header);
 
     width = pixmap -> width;
     height = pixmap -> height;
     bpp = pixmap -> bpp * 8;
 
-    bmp_header[18] =  width & 0xff;
-    bmp_header[19] = (width >> 8) & 0xff;
-    bmp_header[20] = (width >> 16) & 0xff;
-    bmp_header[21] = (width >> 24) & 0xff;
-    bmp_header[22] =  height & 0xff;
-    bmp_header[23] = (height >> 8) & 0xff;
-    bmp_header[24] = (height >> 16) & 0xff;
-    bmp_header[25] = (height >> 24) & 0xff;
+    /* size of BMP header */
+    write4bytes(bmp_header, 2, bmp_size);
+
+    /* width */
+    write4bytes(bmp_header, 18, width);
+
+    /* height */
+    write4bytes(bmp_header, 22, height);
+
+    /* bpp */
     bmp_header[28] = bpp;
+
+    /* size of pixel array */
+    write4bytes(bmp_header, 34, pixel_array_size);
 
     fwrite(bmp_header, sizeof(bmp_header), 1, fout);
     fwrite(pixmap->pixels, pixmap_size(pixmap), 1, fout);
@@ -55,6 +70,7 @@ int bmp_write(const Pixmap *pixmap, const char *file_name)
     {
         return -1;
     }
+
     bmp_write_to_stream(pixmap, fout);
 
     if (fclose(fout) == EOF)
