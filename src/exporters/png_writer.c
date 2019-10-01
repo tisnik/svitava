@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <png.h>
 
-#include "bitmap.h"
+#include "png_writer.h"
 
-int png_write(const Bitmap *bitmap, const char *file_name)
+int png_write(const Pixmap *pixmap, const char *file_name)
 {
     int code = 0;
     FILE *fp;
@@ -51,7 +51,7 @@ int png_write(const Bitmap *bitmap, const char *file_name)
     png_init_io(png_ptr, fp);
 
     /* Write header (8 bit colour depth) */
-    png_set_IHDR(png_ptr, info_ptr, bitmap->width, bitmap->height,
+    png_set_IHDR(png_ptr, info_ptr, pixmap->width, pixmap->height,
             8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
             PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
 
@@ -69,11 +69,11 @@ int png_write(const Bitmap *bitmap, const char *file_name)
 
     /* Write image data */
     int scanline;
-    row = bitmap->pixels;
-    for (scanline=0 ; scanline<bitmap->height; scanline++)
+    row = pixmap->pixels;
+    for (scanline=0 ; scanline<pixmap->height; scanline++)
     {
         png_write_row(png_ptr, row);
-        row += bitmap->bpp;
+        row += pixmap->width * pixmap->bpp;
     }
 
     /* End write */
