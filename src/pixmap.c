@@ -151,3 +151,14 @@ void pixmap_line(Pixmap *pixmap, int x1, int y1, int x2, int y2, unsigned char r
         }
     }
 }
+
+void pixmap_getpixel(const Pixmap *pixmap, int x, int y, unsigned char *r, unsigned char *g, unsigned char *b)
+{
+    unsigned char *p;
+    if (x<0 || y<0 || x>=(int)pixmap->width || y>=(int)pixmap->height) return;
+    p=pixmap->pixels + (x + y * pixmap->width) * pixmap->bpp;
+    *r=*p++;
+    *g=*p++;
+    *b=*p;
+}
+
