@@ -24,9 +24,12 @@ void calculate_mandelbrot(Pixmap *pixmap, long maxiter) {
                 i++;
             }
             {
-                int r = i;
-                int g = i;
-                int b = i;
+                int r = (int)(zx-cx)*10;
+                int g = (int)(zy-cy)*10;
+                int b = 0;
+
+                r = r & 0xff;
+                g = g & 0xff;
 
                 pixmap_putpixel(pixmap, x, y, r, g, b);
             }
