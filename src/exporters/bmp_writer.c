@@ -31,6 +31,45 @@ void write4bytes(unsigned char *array, int offset, int value)
     array[offset+3] = (value >> 24) & 0xff;
 }
 
+void bmp_write_pixels(FILE *fout, const Pixmap *pixmap, const int width, const int height, const int scanline)
+{
+    /* align ok! */
+    if (scanline % 4 == 0) {
+        int x, y;
+        int offset = scanline * (pixmap->height - 1);
+
+        for (y=0; y < height; y++) {
+            unsigned char *pixels = pixmap->pixels + offset;
+            /* RGB <-> BGR conversion */
+            for (x=0; x < width; x++) {
+                fputc(*(pixels+2), fout);
+                fputc(*(pixels+1), fout);
+                fputc(*pixels, fout);
+                pixels+=3;
+            }
+            offset -= scanline;
+        }
+    }
+    else {
+        int x, y;
+        int offset = scanline * (pixmap->height - 1);
+        char padding_array[4];
+        int padding = (4 - scanline % 4) & 0x03;
+
+        for (y=0; y < height; y++) {
+            unsigned char *pixels = pixmap->pixels + offset;
+            for (x=0; x < width; x++) {
+                fputc(*pixels+2, fout);
+                fputc(*pixels+1, fout);
+                fputc(*pixels, fout);
+                pixels+=3;
+            }
+            offset -= scanline;
+            fwrite(padding_array, padding, 1, fout);
+        }
+    }
+}
+
 int bmp_write_to_stream(const Pixmap *pixmap, FILE *fout)
 {
     int width, height, bpp;
@@ -62,22 +101,8 @@ int bmp_write_to_stream(const Pixmap *pixmap, FILE *fout)
     scanline = width * pixmap->bpp;
     printf("%d %d %d\n", scanline, width, bpp);
 
-    /* align ok! */
-    if (scanline % 4 == 0) {
-        fwrite(pixmap->pixels, pixmap_size(pixmap), 1, fout);
-    }
-    else {
-        int y;
-        int offset = 0;
-        char padding_array[4];
-        int padding = (4 - scanline % 4) & 0x03;
+    bmp_write_pixels(fout, pixmap, width, height, scanline);
 
-        for (y=0; y < height; y++) {
-            fwrite(pixmap->pixels + offset, scanline, 1, fout);
-            offset += scanline;
-            fwrite(padding_array, padding, 1, fout);
-        }
-    }
     return 1;
 }
 
