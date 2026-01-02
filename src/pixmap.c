@@ -9,16 +9,6 @@ size_t pixmap_size(const Pixmap *pixmap)
     return pixmap->width * pixmap->height * pixmap->bpp;
 }
 
-Pixmap * pixmap_create(unsigned int width, unsigned int height, unsigned int bpp)
-{
-    Pixmap *pixmap = (Pixmap*)malloc(sizeof(Pixmap));
-    pixmap->width = width;
-    pixmap->height = height;
-    pixmap->bpp = bpp;
-    pixmap->pixels = (unsigned char*)malloc(pixmap_size(pixmap));
-    return pixmap;
-}
-
 void pixmap_destroy(Pixmap *pixmap)
 {
     free(pixmap->pixels);
