@@ -11,8 +11,6 @@ typedef struct
 	unsigned char *pixels;
 } Pixmap;
 
-size_t pixmap_size(const Pixmap *pixmap);
-Pixmap * pixmap_create(unsigned int width, unsigned int height, unsigned int bpp);
 void pixmap_destroy(Pixmap *pixmap);
 void pixmap_clear(Pixmap *pixmap);
 void pixmap_putpixel(Pixmap *pixmap, int x, int y, unsigned char r, unsigned char g, unsigned char b);
