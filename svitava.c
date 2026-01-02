@@ -22,6 +22,9 @@ build as executable:
     gcc -lm -o svitava svitava.c
 */
 
+#include <stddef.h>
+#include <stdlib.h>
+
 /* Image types */
 #define GRAYSCALE 1
 #define RGB 3
@@ -53,7 +56,8 @@ size_t image_size(const image_t *image) {
     if (image == NULL) {
         return 0;
     }
-    return image->width * image->height * image->bpp;
+    /* cast to size_t before multiplication to prevent overflow */
+    return (size_t)image->width * (size_t)image->height * (size_t)image->bpp;
 }
 
 
