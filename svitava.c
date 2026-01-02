@@ -30,6 +30,9 @@ build as executable:
 #define RGB 3
 #define RGBA 4
 
+/* Maximum image resolution */
+#define MAX_WIDTH 8192
+#define MAX_HEIGHT 8192
 
 /**
  * Structure that represents raster image of configurable resolution and bits
@@ -41,8 +44,6 @@ typedef struct {
     unsigned int   bpp;
     unsigned char *pixels;
 } image_t;
-
-
 
 /**
  * Compute the total size in bytes of an image's pixel buffer.
@@ -59,8 +60,6 @@ size_t image_size(const image_t *image) {
     /* cast to size_t before multiplication to prevent overflow */
     return (size_t)image->width * (size_t)image->height * (size_t)image->bpp;
 }
-
-
 
 /**
  * Create an image_t with the given width, height, and bytes-per-pixel,
@@ -80,7 +79,7 @@ size_t image_size(const image_t *image) {
 image_t image_create(const unsigned int width, const unsigned int height, const unsigned int bpp) {
     image_t image;
     /* validate parameters */
-    if (width == 0 || height == 0 || (bpp != GRAYSCALE && bpp != RGB && bpp != RGBA)) {
+    if (width == 0 || height == 0 || width > MAX_WIDTH || height > MAX_HEIGHT || (bpp != GRAYSCALE && bpp != RGB && bpp != RGBA)) {
         image.width = 0;
         image.height = 0;
         image.bpp = 0;
