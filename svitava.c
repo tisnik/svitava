@@ -101,3 +101,33 @@ image_t image_create(const unsigned int width, const unsigned int height, const 
     }
     return image;
 }
+
+/**
+ * Create a new image with the same dimensions and bytes-per-pixel as the given
+ * image.
+ *
+ * If `image` is NULL or its pixel buffer is NULL, returns an image with
+ * width=0, height=0, bpp=0 and pixels=NULL.
+ *
+ * @param image Source image to clone.
+ *
+ * @returns A newly created image_t with the same width, height, and bpp as
+ * `image`; the pixel buffer is separately allocated and may be NULL if
+ * allocation fails.
+ */
+image_t image_clone(const image_t *image) {
+    image_t clone;
+    if (image == NULL || image->pixels == NULL) {
+        clone.width = 0;
+        clone.height = 0;
+        clone.bpp = 0;
+        clone.pixels = NULL;
+        return clone;
+    }
+    clone = image_create(image->width, image->height, image->bpp);
+    if (clone.pixels != NULL) {
+        memcpy(clone.pixels, image->pixels, image_size(image));
+    }
+    return clone;
+}
+
