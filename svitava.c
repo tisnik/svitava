@@ -24,6 +24,7 @@ build as executable:
 
 #include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
 
 /* Image types */
 #define GRAYSCALE 1
@@ -129,5 +130,21 @@ image_t image_clone(const image_t *image) {
         memcpy(clone.pixels, image->pixels, image_size(image));
     }
     return clone;
+}
+
+/**
+ * Clear all pixel data in an image by setting every byte in the pixel buffer
+ * to zero (regardless of image type).
+ *
+ * @param image Image whose pixel buffer will be cleared; must have a valid
+ *              pixel buffer.
+ *
+ * @returns none
+ */
+void image_clear(image_t *image) {
+    if (image == NULL || image->pixels == NULL) {
+        return;
+    }
+    memset(image->pixels, 0x00, image_size(image));
 }
 
