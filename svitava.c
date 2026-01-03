@@ -148,3 +148,41 @@ void image_clear(image_t *image) {
     memset(image->pixels, 0x00, image_size(image));
 }
 
+/**
+ * Set the RGBA color of the pixel at the specified (x, y) coordinates in the image.
+ *
+ * If (x, y) lies outside the image bounds the function has no effect.
+ *
+ * @param image Pointer to the image whose pixel will be updated.
+ * @param x Horizontal pixel coordinate (0 is left).
+ * @param y Vertical pixel coordinate (0 is top).
+ * @param r Red component (0–255).
+ * @param g Green component (0–255).
+ * @param b Blue component (0–255).
+ * @param a Alpha component (0–255).
+ *
+ * @returns none
+ */
+void image_putpixel(image_t *image, int x, int y, unsigned char r,
+                    unsigned char g, unsigned char b, unsigned char a) {
+    unsigned char *p;
+    if (image == NULL || image->pixels == NULL) {
+        return;
+    }
+    if (x < 0 || y < 0 || x >= (int)image->width || y >= (int)image->height) {
+        return;
+    }
+    p = image->pixels + (x + y * image->width) * image->bpp;
+    if (image->bpp == GRAYSCALE) {
+        /* convert to grayscale using standard weights */
+        *p = (unsigned char)(0.299 * r + 0.587 * g + 0.114 * b);
+    } else {
+        *p++ = r;
+        *p++ = g;
+        *p++ = b;
+        if (image->bpp == RGBA) {
+            *p = a;
+        }
+    }
+}
+
