@@ -12,8 +12,6 @@ typedef struct
 } Pixmap;
 
 void pixmap_destroy(Pixmap *pixmap);
-void pixmap_clear(Pixmap *pixmap);
-void pixmap_putpixel(Pixmap *pixmap, int x, int y, unsigned char r, unsigned char g, unsigned char b);
 void pixmap_getpixel(const Pixmap *pixmap, int x, int y, unsigned char *r, unsigned char *g, unsigned char *b);
 void pixmap_putpixel_max(Pixmap *pixmap, int x, int y, unsigned char r, unsigned char g, unsigned char b);
 void pixmap_hline(Pixmap *pixmap, int x1, int x2, int y, unsigned char r, unsigned char g, unsigned char b);

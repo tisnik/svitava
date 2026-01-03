@@ -24,6 +24,7 @@ build as executable:
 
 #include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
 
 /* Image types */
 #define GRAYSCALE 1
@@ -101,3 +102,88 @@ image_t image_create(const unsigned int width, const unsigned int height, const 
     }
     return image;
 }
+
+/**
+ * Create a new image with the same dimensions and bytes-per-pixel as the given
+ * image.
+ *
+ * If `image` is NULL or its pixel buffer is NULL, returns an image with
+ * width=0, height=0, bpp=0 and pixels=NULL.
+ *
+ * @param image Source image to clone.
+ *
+ * @returns A newly created image_t with the same width, height, and bpp as
+ * `image`; the pixel buffer is separately allocated and may be NULL if
+ * allocation fails.
+ */
+image_t image_clone(const image_t *image) {
+    image_t clone;
+    if (image == NULL || image->pixels == NULL) {
+        clone.width = 0;
+        clone.height = 0;
+        clone.bpp = 0;
+        clone.pixels = NULL;
+        return clone;
+    }
+    clone = image_create(image->width, image->height, image->bpp);
+    if (clone.pixels != NULL) {
+        memcpy(clone.pixels, image->pixels, image_size(image));
+    }
+    return clone;
+}
+
+/**
+ * Clear all pixel data in an image by setting every byte in the pixel buffer
+ * to zero (regardless of image type).
+ *
+ * @param image Image whose pixel buffer will be cleared; must have a valid
+ *              pixel buffer.
+ *
+ * @returns none
+ */
+void image_clear(image_t *image) {
+    if (image == NULL || image->pixels == NULL) {
+        return;
+    }
+    memset(image->pixels, 0x00, image_size(image));
+}
+
+/**
+ * Set the RGBA color of the pixel at the specified (x, y) coordinates in the image.
+ *
+ * If (x, y) lies outside the image bounds the function has no effect.
+ *
+ * @param image Pointer to the image whose pixel will be updated.
+ * @param x Horizontal pixel coordinate (0 is left).
+ * @param y Vertical pixel coordinate (0 is top).
+ * @param r Red component (0–255).
+ * @param g Green component (0–255).
+ * @param b Blue component (0–255).
+ * @param a Alpha component (0–255).
+ *
+ * @returns none
+ */
+void image_putpixel(image_t *image, int x, int y, unsigned char r,
+                    unsigned char g, unsigned char b, unsigned char a) {
+    unsigned char *p;
+    if (image == NULL || image->pixels == NULL) {
+        return;
+    }
+    if (x < 0 || y < 0 || x >= (int)image->width || y >= (int)image->height) {
+        return;
+    }
+    p = image->pixels + (x + y * image->width) * image->bpp;
+    if (image->bpp == GRAYSCALE) {
+        /* convert to grayscale using integer approximation of standard weights */
+        /* uses integer arithmetic with coefficients scaled by 256 (77≈0.299×256, 150≈0.587×256, 29≈0.114×256) */
+        *p = (unsigned char)((77 * r + 150 * g + 29 * b) >> 8);
+    } else {
+        *p++ = r;
+        *p++ = g;
+        *p++ = b;
+        if (image->bpp == RGBA) {
+            *p = a;
+        }
+    }
+}
+

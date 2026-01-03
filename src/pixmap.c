@@ -4,30 +4,10 @@
 #include "macros.h"
 #include "pixmap.h"
 
-size_t pixmap_size(const Pixmap *pixmap)
-{
-    return pixmap->width * pixmap->height * pixmap->bpp;
-}
-
 void pixmap_destroy(Pixmap *pixmap)
 {
     free(pixmap->pixels);
     free(pixmap);
-}
-
-void pixmap_clear(Pixmap *pixmap)
-{
-    memset(pixmap->pixels, 0x00, pixmap_size(pixmap));
-}
-
-void pixmap_putpixel(Pixmap *pixmap, int x, int y, unsigned char r, unsigned char g, unsigned char b)
-{
-    unsigned char *p;
-    if (x<0 || y<0 || x>=(int)pixmap->width || y>=(int)pixmap->height) return;
-    p=pixmap->pixels + (x + y * pixmap->width) * pixmap->bpp;
-    *p++=r;
-    *p++=g;
-    *p=b;
 }
 
 void pixmap_putpixel_max(Pixmap *pixmap, int x, int y, unsigned char r, unsigned char g, unsigned char b)
