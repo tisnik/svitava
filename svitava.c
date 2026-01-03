@@ -174,8 +174,9 @@ void image_putpixel(image_t *image, int x, int y, unsigned char r,
     }
     p = image->pixels + (x + y * image->width) * image->bpp;
     if (image->bpp == GRAYSCALE) {
-        /* convert to grayscale using standard weights */
-        *p = (unsigned char)(0.299 * r + 0.587 * g + 0.114 * b);
+        /* convert to grayscale using integer approximation of standard weights */
+        /* uses integer arithmetic with coefficients scaled by 256 (77≈0.299×256, 150≈0.587×256, 29≈0.114×256) */
+        *p = (unsigned char)((77 * r + 150 * g + 29 * b) >> 8);
     } else {
         *p++ = r;
         *p++ = g;
