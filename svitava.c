@@ -187,3 +187,97 @@ void image_putpixel(image_t *image, int x, int y, unsigned char r,
     }
 }
 
+/**
+ * Update the pixel at (x, y) by replacing each color channel with the greater of
+ * the existing channel and the provided value; the alpha channel is written
+ * unconditionally.
+ *
+ * If (x, y) is outside the image bounds, the function does nothing.
+ *
+ * @param image Target image.
+ * @param x X coordinate of the pixel.
+ * @param y Y coordinate of the pixel.
+ * @param r Red component candidate; pixel's red becomes `max(current, r)`.
+ * @param g Green component candidate; pixel's green becomes `max(current, g)`.
+ * @param b Blue component candidate; pixel's blue becomes `max(current, b)`.
+ * @param a Alpha component to write (overwrites existing alpha).
+ *
+ * @returns none
+ */
+void image_putpixel_max(image_t *image, int x, int y, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
+    unsigned char *p;
+    if (image == NULL || image->pixels == NULL) {
+        return;
+    }
+    if (x < 0 || y < 0 || x >= (int)image->width || y >= (int)image->height) {
+        return;
+    }
+    p = image->pixels + (x + y * image->width) * image->bpp;
+    if (image->bpp == GRAYSCALE) {
+        /* convert to grayscale using integer approximation of standard weights */
+        /* uses integer arithmetic with coefficients scaled by 256 (77≈0.299×256, 150≈0.587×256, 29≈0.114×256) */
+        unsigned char gray = (unsigned char)((77 * r + 150 * g + 29 * b) >> 8);
+        if (*p < gray) {
+            *p = gray;
+        }
+        return;
+    }
+    /* image type is RGB or RGBA */
+    if (*p < r) {
+        *p = r;
+    }
+    p++;
+    if (*p < g) {
+        *p = g;
+    }
+    p++;
+    if (*p < b) {
+        *p = b;
+    }
+    if (image->bpp == RGBA) {
+        p++;
+        *p = a;
+    }
+}
+
+/**
+ * Retrieve the RGBA components of the pixel at (x, y).
+ *
+ * If (x, y) is outside the image bounds the function returns without modifying
+ * the output pointers. The output pointers must be non-NULL when (x, y) is
+ * inside bounds.
+ *
+ * @param image Pointer to the source image.
+ * @param x X coordinate of the pixel.
+ * @param y Y coordinate of the pixel.
+ * @param r Pointer to receive the red component (0–255).
+ * @param g Pointer to receive the green component (0–255).
+ * @param b Pointer to receive the blue component (0–255).
+ * @param a Pointer to receive the alpha component (0–255).
+ */
+void image_getpixel(const image_t *image, int x, int y, unsigned char *r, unsigned char *g, unsigned char *b, unsigned char *a) {
+    const unsigned char *p;
+    if (image == NULL || image->pixels == NULL || r == NULL || g == NULL || b == NULL || a == NULL) {
+        return;
+    }
+    if (x < 0 || y < 0 || x >= (int)image->width || y >= (int)image->height) {
+        return;
+    }
+    p = image->pixels + (x + y * image->width) * image->bpp;
+
+    if (image->bpp == GRAYSCALE) {
+        /* for grayscale, replicate the single value to all RGB channels */
+        *r = *g = *b = *p;
+        *a = 255; /* grayscale images are always opaque */
+        return;
+    }
+
+    *r = *p++;
+    *g = *p++;
+    *b = *p++;
+    if (image->bpp == RGBA) {
+        *a = *p;
+    } else {
+        *a = 255; /* default opaque for non-RGBA images */
+    }
+}
