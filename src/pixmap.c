@@ -10,18 +10,6 @@ void pixmap_destroy(Pixmap *pixmap)
     free(pixmap);
 }
 
-void pixmap_putpixel_max(Pixmap *pixmap, int x, int y, unsigned char r, unsigned char g, unsigned char b)
-{
-    unsigned char *p;
-    if (x<0 || y<0 || x>=(int)pixmap->width || y>=(int)pixmap->height) return;
-    p=pixmap->pixels + (x + y * pixmap->width) * pixmap->bpp;
-    if (*p<r) *p=r;
-    p++;
-    if (*p<g) *p=g;
-    p++;
-    if (*p<b) *p=b;
-}
-
 void pixmap_hline(Pixmap *pixmap, int x1, int x2, int y, unsigned char r, unsigned char g, unsigned char b)
 {
     int x, fromX=MIN(x1, x2), toX=MAX(x1, x2);
@@ -120,15 +108,5 @@ void pixmap_line(Pixmap *pixmap, int x1, int y1, int x2, int y2, unsigned char r
             y+=ypdelta;
         }
     }
-}
-
-void pixmap_getpixel(const Pixmap *pixmap, int x, int y, unsigned char *r, unsigned char *g, unsigned char *b)
-{
-    unsigned char *p;
-    if (x<0 || y<0 || x>=(int)pixmap->width || y>=(int)pixmap->height) return;
-    p=pixmap->pixels + (x + y * pixmap->width) * pixmap->bpp;
-    *r=*p++;
-    *g=*p++;
-    *b=*p;
 }
 

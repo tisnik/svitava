@@ -256,7 +256,7 @@ void image_putpixel_max(image_t *image, int x, int y, unsigned char r, unsigned 
  * @param a Pointer to receive the alpha component (0–255).
  */
 void image_getpixel(const image_t *image, int x, int y, unsigned char *r, unsigned char *g, unsigned char *b, unsigned char *a) {
-    unsigned char *p;
+    const unsigned char *p;
     if (image == NULL || image->pixels == NULL || r == NULL || g == NULL || b == NULL || a == NULL) {
         return;
     }
