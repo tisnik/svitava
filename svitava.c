@@ -264,10 +264,17 @@ void image_getpixel(const image_t *image, int x, int y, unsigned char *r, unsign
         return;
     }
     p = image->pixels + (x + y * image->width) * image->bpp;
+
+    if (image->bpp == GRAYSCALE) {
+        /* for grayscale, replicate the single value to all RGB channels */
+        *r = *g = *b = *p;
+        *a = 255; /* grayscale images are always opaque */
+        return;
+    }
+
     *r = *p++;
     *g = *p++;
     *b = *p++;
-
     if (image->bpp == RGBA) {
         *a = *p;
     } else {
