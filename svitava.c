@@ -187,3 +187,46 @@ void image_putpixel(image_t *image, int x, int y, unsigned char r,
     }
 }
 
+/**
+ * Update the pixel at (x, y) by replacing each color channel with the greater of
+ * the existing channel and the provided value; the alpha channel is written
+ * unconditionally.
+ *
+ * If (x, y) is outside the image bounds, the function does nothing.
+ *
+ * @param image Target image.
+ * @param x X coordinate of the pixel.
+ * @param y Y coordinate of the pixel.
+ * @param r Red component candidate; pixel's red becomes `max(current, r)`.
+ * @param g Green component candidate; pixel's green becomes `max(current, g)`.
+ * @param b Blue component candidate; pixel's blue becomes `max(current, b)`.
+ * @param a Alpha component to write (overwrites existing alpha).
+ *
+ * @returns none
+ */
+void image_putpixel_max(image_t *image, int x, int y, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
+    unsigned char *p;
+    if (image == NULL || image->pixels == NULL) {
+        return;
+    }
+    if (x < 0 || y < 0 || x >= (int)image->width || y >= (int)image->height) {
+        return;
+    }
+    p = image->pixels + (x + y * image->width) * image->bpp;
+    if (*p < r) {
+        *p = r;
+    }
+    p++;
+    if (*p < g) {
+        *p = g;
+    }
+    p++;
+    if (*p < b) {
+        *p = b;
+    }
+    if (image->bpp == RGBA) {
+        p++;
+        *p = a;
+    }
+}
+
