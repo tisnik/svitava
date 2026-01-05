@@ -35,6 +35,9 @@ build as executable:
 #define MAX_WIDTH 8192
 #define MAX_HEIGHT 8192
 
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+
 /**
  * Structure that represents raster image of configurable resolution and bits
  * per pixel format.
@@ -279,5 +282,90 @@ void image_getpixel(const image_t *image, int x, int y, unsigned char *r, unsign
         *a = *p;
     } else {
         *a = 255; /* default opaque for non-RGBA images */
+    }
+}
+
+/**
+ * Draws a horizontal line between two x coordinates at a given y using the specified RGBA color.
+ *
+ * The line includes both endpoints; the order of `x1` and `x2` does not matter. Pixels that lie
+ * outside the image bounds are ignored.
+ *
+ * @param image Target image to draw into.
+ * @param x1 One end x coordinate of the line.
+ * @param x2 Other end x coordinate of the line.
+ * @param y Y coordinate of the line.
+ * @param r Red component (0–255).
+ * @param g Green component (0–255).
+ * @param b Blue component (0–255).
+ * @param a Alpha component (0–255).
+ *
+ * @returns none
+ */
+void image_hline(image_t *image, int x1, int x2, int y, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
+    int x, fromX = MIN(x1, x2), toX = MAX(x1, x2);
+    for (x = fromX; x <= toX; x++) {
+        image_putpixel(image, x, y, r, g, b, a);
+    }
+}
+
+/**
+ * Draws a vertical line at column x between y1 and y2 inclusive using the specified RGBA color.
+ *
+ * @param image Target image.
+ * @param x X coordinate (column) where the line is drawn.
+ * @param y1 One end Y coordinate of the line.
+ * @param y2 Other end Y coordinate of the line.
+ * @param r Red component (0-255).
+ * @param g Green component (0-255).
+ * @param b Blue component (0-255).
+ * @param a Alpha component (0-255).
+ *
+ * @returns none
+ */
+void image_vline(image_t *image, int x, int y1, int y2, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
+    int y, fromY = MIN(y1, y2), toY = MAX(y1, y2);
+    for (y = fromY; y <= toY; y++) {
+        image_putpixel(image, x, y, r, g, b, a);
+    }
+}
+
+/**
+ * Draws a straight line between two pixel coordinates using an integer rasterization algorithm.
+ *
+ * The line includes both endpoint pixels and writes the specified RGBA color to each covered pixel.
+ * Pixels that lie outside the image bounds are ignored.
+ *
+ * @param image Target image to draw into.
+ * @param x1 X coordinate of the start point (in pixels).
+ * @param y1 Y coordinate of the start point (in pixels).
+ * @param x2 X coordinate of the end point (in pixels).
+ * @param y2 Y coordinate of the end point (in pixels).
+ * @param r Red component of the color (0-255).
+ * @param g Green component of the color (0-255).
+ * @param b Blue component of the color (0-255).
+ * @param a Alpha component of the color (0-255).
+ *
+ * @returns none
+ */
+void image_line(image_t *image, int x1, int y1, int x2, int y2, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
+    int dx = abs(x2 - x1), sx = x1 < x2 ? 1 : -1;
+    int dy = abs(y2 - y1), sy = y1 < y2 ? 1 : -1;
+    int err = (dx > dy ? dx : -dy) / 2, e2;
+
+    while (1) {
+        image_putpixel(image, x1, y1, r, g, b, a);
+        if (x1 == x2 && y1 == y2) {
+            break;
+        }
+        e2 = err;
+        if (e2 > -dx) {
+            err -= dy;
+            x1 += sx;
+        }
+        if (e2 < dy) {
+            err += dx;
+            y1 += sy;
+        }
     }
 }

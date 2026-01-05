@@ -10,24 +10,6 @@ void pixmap_destroy(Pixmap *pixmap)
     free(pixmap);
 }
 
-void pixmap_hline(Pixmap *pixmap, int x1, int x2, int y, unsigned char r, unsigned char g, unsigned char b)
-{
-    int x, fromX=MIN(x1, x2), toX=MAX(x1, x2);
-    for (x=fromX; x<=toX; x++)
-    {
-        pixmap_putpixel(pixmap, x, y, r, g, b);
-    }
-}
-
-void pixmap_vline(Pixmap *pixmap, int x, int y1, int y2, unsigned char r, unsigned char g, unsigned char b)
-{
-    int y, fromY=MIN(y1, y2), toY=MAX(y1, y2);
-    for (y=fromY; y<=toY; y++)
-    {
-        pixmap_putpixel(pixmap, x, y, r, g, b);
-    }
-}
-
 void pixmap_line(Pixmap *pixmap, int x1, int y1, int x2, int y2, unsigned char r, unsigned char g, unsigned char b)
 {
     int dx=x2-x1;
