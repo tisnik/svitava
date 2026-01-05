@@ -35,6 +35,9 @@ build as executable:
 #define MAX_WIDTH 8192
 #define MAX_HEIGHT 8192
 
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+
 /**
  * Structure that represents raster image of configurable resolution and bits
  * per pixel format.
@@ -302,6 +305,27 @@ void image_getpixel(const image_t *image, int x, int y, unsigned char *r, unsign
 void image_hline(image_t *image, int x1, int x2, int y, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
     int x, fromX = MIN(x1, x2), toX = MAX(x1, x2);
     for (x = fromX; x <= toX; x++) {
+        image_putpixel(image, x, y, r, g, b, a);
+    }
+}
+
+/**
+ * Draws a vertical line at column x between y1 and y2 inclusive using the specified RGBA color.
+ *
+ * @param image Target image.
+ * @param x X coordinate (column) where the line is drawn.
+ * @param y1 One end Y coordinate of the line.
+ * @param y2 Other end Y coordinate of the line.
+ * @param r Red component (0-255).
+ * @param g Green component (0-255).
+ * @param b Blue component (0-255).
+ * @param a Alpha component (0-255).
+ *
+ * @returns none
+ */
+void image_vline(image_t *image, int x, int y1, int y2, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
+    int y, fromY = MIN(y1, y2), toY = MAX(y1, y2);
+    for (y = fromY; y <= toY; y++) {
         image_putpixel(image, x, y, r, g, b, a);
     }
 }
