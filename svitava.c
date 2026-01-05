@@ -281,3 +281,27 @@ void image_getpixel(const image_t *image, int x, int y, unsigned char *r, unsign
         *a = 255; /* default opaque for non-RGBA images */
     }
 }
+
+/**
+ * Draws a horizontal line between two x coordinates at a given y using the specified RGBA color.
+ *
+ * The line includes both endpoints; the order of `x1` and `x2` does not matter. Pixels that lie
+ * outside the image bounds are ignored.
+ *
+ * @param image Target image to draw into.
+ * @param x1 One end x coordinate of the line.
+ * @param x2 Other end x coordinate of the line.
+ * @param y Y coordinate of the line.
+ * @param r Red component (0–255).
+ * @param g Green component (0–255).
+ * @param b Blue component (0–255).
+ * @param a Alpha component (0–255).
+ *
+ * @returns none
+ */
+void image_hline(image_t *image, int x1, int x2, int y, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
+    int x, fromX = MIN(x1, x2), toX = MAX(x1, x2);
+    for (x = fromX; x <= toX; x++) {
+        image_putpixel(image, x, y, r, g, b, a);
+    }
+}
