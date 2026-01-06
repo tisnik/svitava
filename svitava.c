@@ -397,11 +397,18 @@ void image_line_aa(image_t *image, int x1, int y1, int x2, int y2, unsigned char
     int    x, y, xdelta, ydelta, xpdelta, ypdelta, xp, yp;
     int    i, imin, imax;
 
+    /* anti-aliasing requires RGBA for proper blending */
+    if (image == NULL || image->pixels == NULL || image->bpp != RGBA) {
+        return;
+    }
+
+    /* strict vertical line does not have to be anti-aliased */
     if (x1 == x2) {
         image_vline(image, x1, y1, y2, r, g, b, a);
         return;
     }
 
+    /* strict horizontal line does not have to be anti-aliased */
     if (y1 == y2) {
         image_hline(image, x1, x2, y1, r, g, b, a);
         return;
@@ -416,8 +423,9 @@ void image_line_aa(image_t *image, int x1, int y1, int x2, int y2, unsigned char
         y1 = y1 ^ y2;
     }
 
+    /* iterate along the dominant (longer) axis */
     if (abs(dx) > abs(dy)) {
-        s = (double)dy / (double)dx;
+        s = (double)dy / (double)dx;  /* slope: rise over run */
         imin = x1;
         imax = x2;
         x = x1;
@@ -435,7 +443,7 @@ void image_line_aa(image_t *image, int x1, int y1, int x2, int y2, unsigned char
             yp = -1;
         }
     } else {
-        s = (double)dx / (double)dy;
+        s = (double)dx / (double)dy;  /* slope: run over rise */
         xdelta = 0;
         ydelta = 1;
         ypdelta = 0;
@@ -457,9 +465,11 @@ void image_line_aa(image_t *image, int x1, int y1, int x2, int y2, unsigned char
             xp = -1;
         }
     }
+    /* p: sub-pixel step scaled to [0, 256) range for intensity calculation */
     p = s * 256.0;
     for (i = imin; i <= imax; i++) {
         int c1 = (int)e;
+        if (c1 > 255) c1 = 255;
         int c2 = 255 - c1;
         image_putpixel_max(image, x + xp, y + yp, (r * c1) / 255, (g * c1) / 255, (b * c1) / 255, a);
         image_putpixel_max(image, x, y, (r * c2) / 255, (g * c2) / 255, (b * c2) / 255, a);
