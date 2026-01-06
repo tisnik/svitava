@@ -369,3 +369,117 @@ void image_line(image_t *image, int x1, int y1, int x2, int y2, unsigned char r,
         }
     }
 }
+
+/**
+ * Draws an anti-aliased straight line between two points into an RGBA image.
+ *
+ * The line is rasterized with sub-pixel intensity distribution so adjacent pixels
+ * receive proportionally scaled color components for smoothing. Color components
+ * are applied using the image's per-pixel maximum blending semantics (brightest
+ * component wins); alpha is written as provided.
+ *
+ * @param image Target image buffer (RGBA) to draw into.
+ * @param x1 X coordinate of the line start.
+ * @param y1 Y coordinate of the line start.
+ * @param x2 X coordinate of the line end.
+ * @param y2 Y coordinate of the line end.
+ * @param r Red component (0–255) of the line color.
+ * @param g Green component (0–255) of the line color.
+ * @param b Blue component (0–255) of the line color.
+ * @param a Alpha component (0–255) of the line color.
+ *
+ * @returns none
+ */
+void image_line_aa(image_t *image, int x1, int y1, int x2, int y2, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
+    int    dx = x2 - x1;
+    int    dy = y2 - y1;
+    double s, p, e = 0.0;
+    int    x, y, xdelta, ydelta, xpdelta, ypdelta, xp, yp;
+    int    i, imin, imax;
+
+    /* anti-aliasing requires RGBA for proper blending */
+    if (image == NULL || image->pixels == NULL || image->bpp != RGBA) {
+        return;
+    }
+
+    /* strict vertical line does not have to be anti-aliased */
+    if (x1 == x2) {
+        image_vline(image, x1, y1, y2, r, g, b, a);
+        return;
+    }
+
+    /* strict horizontal line does not have to be anti-aliased */
+    if (y1 == y2) {
+        image_hline(image, x1, x2, y1, r, g, b, a);
+        return;
+    }
+
+    if (x1 > x2) {
+        x1 = x1 ^ x2;
+        x2 = x1 ^ x2;
+        x1 = x1 ^ x2;
+        y1 = y1 ^ y2;
+        y2 = y1 ^ y2;
+        y1 = y1 ^ y2;
+    }
+
+    /* iterate along the dominant (longer) axis */
+    if (abs(dx) > abs(dy)) {
+        s = (double)dy / (double)dx;  /* slope: rise over run */
+        imin = x1;
+        imax = x2;
+        x = x1;
+        y = y1;
+        xdelta = 1;
+        ydelta = 0;
+        xpdelta = 0;
+        xp = 0;
+        if (y2 > y1) {
+            ypdelta = 1;
+            yp = 1;
+        } else {
+            s = -s;
+            ypdelta = -1;
+            yp = -1;
+        }
+    } else {
+        s = (double)dx / (double)dy;  /* slope: run over rise */
+        xdelta = 0;
+        ydelta = 1;
+        ypdelta = 0;
+        yp = 0;
+        if (y2 > y1) {
+            imin = y1;
+            imax = y2;
+            x = x1;
+            y = y1;
+            xpdelta = 1;
+            xp = 1;
+        } else {
+            s = -s;
+            imin = y2;
+            imax = y1;
+            x = x2;
+            y = y2;
+            xpdelta = -1;
+            xp = -1;
+        }
+    }
+    /* p: sub-pixel step scaled to [0, 256) range for intensity calculation */
+    p = s * 256.0;
+    for (i = imin; i <= imax; i++) {
+        int c1 = (int)e;
+        if (c1 > 255) c1 = 255;
+        int c2 = 255 - c1;
+        image_putpixel_max(image, x + xp, y + yp, (r * c1) / 255, (g * c1) / 255, (b * c1) / 255, a);
+        image_putpixel_max(image, x, y, (r * c2) / 255, (g * c2) / 255, (b * c2) / 255, a);
+        e = e + p;
+        x += xdelta;
+        y += ydelta;
+        if (e >= 256.0) {
+            e -= 256.0;
+            x += xpdelta;
+            y += ypdelta;
+        }
+    }
+}
