@@ -568,7 +568,11 @@ void filter_smooth_3x3_block(image_t *image) {
 /**
  * Apply a 3×3 Gaussian-like smoothing filter to the provided image in-place.
  *
- * Uses the 3×3 kernel { {1,2,1}, {2,4,2}, {1,2,1} } with a divisor of 16 to perform smoothing.
+ * Uses the 3×3 kernel with weights:
+ *   1 2 1
+ *   2 4 2
+ *   1 2 1
+ * and a divisor of 16 to perform smoothing.
  *
  * @param image Image to be filtered; modified in-place. If `image` or its pixel buffer is NULL, the function does nothing.
  */
@@ -585,9 +589,14 @@ void filter_smooth_3x3_gauss(image_t *image) {
 /**
  * Apply a 3×3 sharpening filter to the image in place.
  *
+ * Uses the 3×3 kernel with weights:
+ *    0 -1  0
+ *   -1  5 -1
+ *    0 -1  0
+ *
  * @param image Image whose pixels will be modified by the sharpening filter.
  */
-void filter_smooth_3x3_sharpen(image_t *image) {
+void filter_sharpen_3x3(image_t *image) {
     static int kernel[3][3] = {
         { 0,-1, 0},
         {-1, 5,-1},
