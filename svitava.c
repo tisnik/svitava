@@ -516,8 +516,8 @@ void apply_kernel(image_t *image, int size, int kernel[size][size], int divisor)
         return; /* allocation failed */
     }
 
-    for (y=limit; y<tmp.height-limit; y++) {
-        for (x=limit; x<tmp.width-limit; x++) {
+    for (y=limit; y<(int)tmp.height-limit; y++) {
+        for (x=limit; x<(int)tmp.width-limit; x++) {
             int r=0, g=0, b=0;
             int dx, dy;
             for (dy=-limit; dy<=limit; dy++) {
@@ -536,9 +536,30 @@ void apply_kernel(image_t *image, int size, int kernel[size][size], int divisor)
             r = (r < 0) ? 0 : (r > 255 ? 255 : r);
             g = (g < 0) ? 0 : (g > 255 ? 255 : g);
             b = (b < 0) ? 0 : (b > 255 ? 255 : b);
-            image_putpixel(&tmp, x, y, r, g, b, 0);
+            image_putpixel(&tmp, x, y, r, g, b, 255);
         }
     }
     memcpy(image->pixels, tmp.pixels, image_size(image));
     free(tmp.pixels);
+}
+
+/**
+ * Apply a 3×3 weighted smoothing filter to the given image in-place.
+ *
+ * Uses a 3×3 kernel with weights:
+ *   1 1 1
+ *   1 1 1
+ *   1 1 1
+ * and a divisor of 9 to perform a weighted average of each pixel's neighbourhood.
+ *
+ * @param image Image to be filtered; its pixel data is modified in-place.
+ */
+void filter_smooth_3x3_block(image_t *image) {
+    static int kernel[3][3] = {
+        {1,1,1},
+        {1,1,1},
+        {1,1,1},
+    };
+
+    apply_kernel(image, 3, kernel, 9);
 }
