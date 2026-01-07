@@ -483,3 +483,62 @@ void image_line_aa(image_t *image, int x1, int y1, int x2, int y2, unsigned char
         }
     }
 }
+
+/**
+ * Apply a convolution kernel to the image, producing a filtered version in-place.
+ *
+ * Applies the provided size×size integer kernel to each pixel inside the image
+ * (excluding a border of floor(size/2) pixels). For each processed pixel the
+ * weighted sums of the R, G, B channels are computed, divided by `divisor`, and
+ * written back into the image buffer; the alpha channel of written pixels is set to 0.
+ * Border pixels that cannot be fully covered by the kernel are left unchanged.
+ *
+ * @param image   Image to be filtered; its pixel buffer is updated with the result.
+ * @param size    Kernel dimension; must match both kernel array dimensions and be an odd positive integer.
+ * @param kernel  2D integer kernel of dimensions [size][size]; kernel[row][col] is applied around each pixel.
+ * @param divisor Value used to normalize the accumulated channel sums; must be non-zero.
+ */
+void apply_kernel(image_t *image, int size, int kernel[size][size], int divisor) {
+    int x, y;
+    image_t tmp;
+    int limit = size/2;
+
+    if (image == NULL || image->pixels == NULL) {
+        return;
+    }
+    /* size must be odd positive number */
+    if (size <= 0 || size % 2 == 0 || divisor == 0) {
+        return;
+    }
+
+    tmp = image_clone(image);
+    if (tmp.pixels == NULL) {
+        return; /* allocation failed */
+    }
+
+    for (y=limit; y<tmp.height-limit; y++) {
+        for (x=limit; x<tmp.width-limit; x++) {
+            int r=0, g=0, b=0;
+            int dx, dy;
+            for (dy=-limit; dy<=limit; dy++) {
+                for (dx=-limit; dx<=limit; dx++) {
+                    unsigned char rr, gg, bb, aa;
+                    image_getpixel(image, x+dx, y+dy, &rr, &gg, &bb, &aa);
+                    r+=rr*kernel[dy+limit][dx+limit];
+                    g+=gg*kernel[dy+limit][dx+limit];
+                    b+=bb*kernel[dy+limit][dx+limit];
+                }
+            }
+            r/=divisor;
+            g/=divisor;
+            b/=divisor;
+            /* clamp to valid unsigned char range */
+            r = (r < 0) ? 0 : (r > 255 ? 255 : r);
+            g = (g < 0) ? 0 : (g > 255 ? 255 : g);
+            b = (b < 0) ? 0 : (b > 255 ? 255 : b);
+            image_putpixel(&tmp, x, y, r, g, b, 0);
+        }
+    }
+    memcpy(image->pixels, tmp.pixels, image_size(image));
+    free(tmp.pixels);
+}
