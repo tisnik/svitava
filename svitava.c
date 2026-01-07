@@ -581,3 +581,18 @@ void filter_smooth_3x3_gauss(image_t *image) {
 
     apply_kernel(image, 3, kernel, 16);
 }
+
+/**
+ * Apply a 3×3 sharpening filter to the image in place.
+ *
+ * @param image Image whose pixels will be modified by the sharpening filter.
+ */
+void filter_smooth_3x3_sharpen(image_t *image) {
+    static int kernel[3][3] = {
+        { 0,-1, 0},
+        {-1, 5,-1},
+        { 0,-1, 0},
+    };
+
+    apply_kernel(image, 3, kernel, 1);
+}
