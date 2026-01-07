@@ -483,3 +483,125 @@ void image_line_aa(image_t *image, int x1, int y1, int x2, int y2, unsigned char
         }
     }
 }
+
+/**
+ * Apply a convolution kernel to the image, producing a filtered version in-place.
+ *
+ * Applies the provided size×size integer kernel to each pixel inside the image
+ * (excluding a border of floor(size/2) pixels). For each processed pixel the
+ * weighted sums of the R, G, B channels are computed, divided by `divisor`, and
+ * written back into the image buffer; the alpha channel of written pixels is
+ * set to 255 (fully opaque). Border pixels that cannot be fully covered by the
+ * kernel are left unchanged.
+ *
+ * @param image   Image to be filtered; its pixel buffer is updated with the result.
+ * @param size    Kernel dimension; must match both kernel array dimensions and be an odd positive integer.
+ * @param kernel  2D integer kernel of dimensions [size][size]; kernel[row][col] is applied around each pixel.
+ * @param divisor Value used to normalize the accumulated channel sums; must be non-zero.
+ */
+void apply_kernel(image_t *image, int size, int kernel[size][size], int divisor) {
+    int x, y;
+    image_t tmp;
+    int limit = size/2;
+
+    if (image == NULL || image->pixels == NULL) {
+        return;
+    }
+    /* size must be odd positive number */
+    if (size <= 0 || size % 2 == 0 || divisor == 0) {
+        return;
+    }
+
+    tmp = image_clone(image);
+    if (tmp.pixels == NULL) {
+        return; /* allocation failed */
+    }
+
+    for (y=limit; y<(int)tmp.height-limit; y++) {
+        for (x=limit; x<(int)tmp.width-limit; x++) {
+            int r=0, g=0, b=0;
+            int dx, dy;
+            for (dy=-limit; dy<=limit; dy++) {
+                for (dx=-limit; dx<=limit; dx++) {
+                    unsigned char rr, gg, bb, aa;
+                    image_getpixel(image, x+dx, y+dy, &rr, &gg, &bb, &aa);
+                    r+=rr*kernel[dy+limit][dx+limit];
+                    g+=gg*kernel[dy+limit][dx+limit];
+                    b+=bb*kernel[dy+limit][dx+limit];
+                }
+            }
+            r/=divisor;
+            g/=divisor;
+            b/=divisor;
+            /* clamp to valid unsigned char range */
+            r = (r < 0) ? 0 : (r > 255 ? 255 : r);
+            g = (g < 0) ? 0 : (g > 255 ? 255 : g);
+            b = (b < 0) ? 0 : (b > 255 ? 255 : b);
+            image_putpixel(&tmp, x, y, r, g, b, 255);
+        }
+    }
+    memcpy(image->pixels, tmp.pixels, image_size(image));
+    free(tmp.pixels);
+}
+
+/**
+ * Apply a 3×3 weighted smoothing filter to the given image in-place.
+ *
+ * Uses a 3×3 kernel with weights:
+ *   1 1 1
+ *   1 1 1
+ *   1 1 1
+ * and a divisor of 9 to perform a weighted average of each pixel's neighbourhood.
+ *
+ * @param image Image to be filtered; its pixel data is modified in-place.
+ */
+void filter_smooth_3x3_block(image_t *image) {
+    static int kernel[3][3] = {
+        {1,1,1},
+        {1,1,1},
+        {1,1,1},
+    };
+
+    apply_kernel(image, 3, kernel, 9);
+}
+
+/**
+ * Apply a 3×3 Gaussian-like smoothing filter to the provided image in-place.
+ *
+ * Uses the 3×3 kernel with weights:
+ *   1 2 1
+ *   2 4 2
+ *   1 2 1
+ * and a divisor of 16 to perform smoothing.
+ *
+ * @param image Image to be filtered; modified in-place. If `image` or its pixel buffer is NULL, the function does nothing.
+ */
+void filter_smooth_3x3_gauss(image_t *image) {
+    static int kernel[3][3] = {
+        {1,2,1},
+        {2,4,2},
+        {1,2,1},
+    };
+
+    apply_kernel(image, 3, kernel, 16);
+}
+
+/**
+ * Apply a 3×3 sharpening filter to the image in place.
+ *
+ * Uses the 3×3 kernel with weights:
+ *    0 -1  0
+ *   -1  5 -1
+ *    0 -1  0
+ *
+ * @param image Image whose pixels will be modified by the sharpening filter.
+ */
+void filter_sharpen_3x3(image_t *image) {
+    static int kernel[3][3] = {
+        { 0,-1, 0},
+        {-1, 5,-1},
+        { 0,-1, 0},
+    };
+
+    apply_kernel(image, 3, kernel, 1);
+}
