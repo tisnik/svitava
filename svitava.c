@@ -605,3 +605,18 @@ void filter_sharpen_3x3(image_t *image) {
 
     apply_kernel(image, 3, kernel, 1);
 }
+
+/**
+ * Apply a 3×3 edge-detection filter (Laplacian kernel) to the image in-place.
+ *
+ * @param image Image to filter; no action is taken if `image` is NULL or has no pixel buffer.
+ */
+void filter_edge_detection_3x3_1(image_t *image) {
+    static int kernel[3][3] = {
+        { 0,-1, 0},
+        {-1, 4,-1},
+        { 0,-1, 0},
+    };
+
+    apply_kernel(image, 3, kernel, 1);
+}
