@@ -605,3 +605,72 @@ void filter_sharpen_3x3(image_t *image) {
 
     apply_kernel(image, 3, kernel, 1);
 }
+
+/**
+ * Apply a 3×3 edge-detection filter (4-neighbor Laplacian kernel) to the image in-place.
+ *
+ * This filter highlights regions of rapid intensity change (edges) by computing the
+ * second derivative approximation. Edges appear as bright pixels; negative values
+ * are clamped to zero. Uses the kernel:
+ *    0 -1  0
+ *   -1  4 -1
+ *    0 -1  0
+ *
+ * @param image Image to filter; no action is taken if `image` is NULL or has no pixel buffer.
+ */
+void filter_edge_detection_3x3_1(image_t *image) {
+    static int kernel[3][3] = {
+        { 0,-1, 0},
+        {-1, 4,-1},
+        { 0,-1, 0},
+    };
+
+    apply_kernel(image, 3, kernel, 1);
+}
+
+/**
+ * Apply a 3×3 edge-detection filter (8-neighbor Laplacian kernel) to the image in-place.
+ *
+ * This filter highlights regions of rapid intensity change (edges) using all eight
+ * neighboring pixels. Edges appear as bright pixels; negative values are clamped to zero.
+ * Uses the kernel:
+ *   -1 -1 -1
+ *   -1  8 -1
+ *   -1 -1 -1
+ *
+ * @param image Image to filter; no action is taken if `image` is NULL or has no pixel buffer.
+ */
+void filter_edge_detection_3x3_2(image_t *image) {
+    static int kernel[3][3] = {
+        {-1,-1,-1},
+        {-1, 8,-1},
+        {-1,-1,-1},
+    };
+
+    apply_kernel(image, 3, kernel, 1);
+}
+
+/**
+ * Apply a 3×3 Laplacian-like edge-detection filter to the provided image in-place.
+ *
+ * This filter uses the inverted polarity of filter_edge_detection_3x3_1, highlighting
+ * edges where the center pixel is darker than its neighbors. Edges appear as bright
+ * pixels; negative values are clamped to zero.
+ *
+ * The kernel applied is:
+ *   [ 0,  1,  0 ]
+ *   [ 1, -4,  1 ]
+ *   [ 0,  1,  0 ]
+ *
+ * @param image Image to be filtered; the pixel buffer is modified in-place. If `image` or its pixel buffer is NULL, no action is taken.
+ */
+void filter_edge_detection_3x3_3(image_t *image) {
+    static int kernel[3][3] = {
+        { 0, 1, 0},
+        { 1,-4, 1},
+        { 0, 1, 0},
+    };
+
+    apply_kernel(image, 3, kernel, 1);
+}
+
