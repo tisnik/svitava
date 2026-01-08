@@ -607,7 +607,14 @@ void filter_sharpen_3x3(image_t *image) {
 }
 
 /**
- * Apply a 3×3 edge-detection filter (Laplacian kernel) to the image in-place.
+ * Apply a 3×3 edge-detection filter (4-neighbor Laplacian kernel) to the image in-place.
+ *
+ * This filter highlights regions of rapid intensity change (edges) by computing the
+ * second derivative approximation. Edges appear as bright pixels; negative values
+ * are clamped to zero. Uses the kernel:
+ *    0 -1  0
+ *   -1  4 -1
+ *    0 -1  0
  *
  * @param image Image to filter; no action is taken if `image` is NULL or has no pixel buffer.
  */
@@ -620,3 +627,18 @@ void filter_edge_detection_3x3_1(image_t *image) {
 
     apply_kernel(image, 3, kernel, 1);
 }
+
+/**
+ * Apply a 3×3 edge-detection filter that highlights image edges by accentuating local intensity differences.
+ * @param image Image to filter in-place; if NULL or invalid, no action is performed.
+ */
+void filter_edge_detection_3x3_2(image_t *image) {
+    static int kernel[3][3] = {
+        {-1,-1,-1},
+        {-1, 8,-1},
+        {-1,-1,-1},
+    };
+
+    apply_kernel(image, 3, kernel, 1);
+}
+
