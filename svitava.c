@@ -674,3 +674,23 @@ void filter_edge_detection_3x3_3(image_t *image) {
     apply_kernel(image, 3, kernel, 1);
 }
 
+/**
+ * Apply a 3×3 horizontal edge-detection filter to an image in-place.
+ *
+ * The kernel used is:
+ *   [-1, -1, -1]
+ *   [ 0,  0,  0]
+ *   [ 1,  1,  1]
+ *
+ * @param image Image whose pixels will be modified by the filter.
+ */
+void filter_horizontal_edge_detection_3x3(image_t *image) {
+    static int kernel[3][3] = {
+        {-1,-1,-1},
+        { 0, 0, 0},
+        { 1, 1, 1},
+    };
+
+    apply_kernel(image, 3, kernel, 1);
+}
+
