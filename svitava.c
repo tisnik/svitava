@@ -740,3 +740,23 @@ void filter_horizontal_sobel_operator_3x3(image_t *image) {
     apply_kernel(image, 3, kernel, 1);
 }
 
+/**
+ * Apply the 3×3 vertical Sobel operator to the given image, modifying pixels in-place.
+ *
+ * The kernel applied is:
+ *   [-1, -2, -1]
+ *   [ 0,  0,  0]
+ *   [ 1,  2,  1]
+ *
+ * @param image Image to be filtered; the pixel buffer is modified in-place. If `image` or its pixel buffer is NULL, no action is taken.
+ */
+void filter_vertical_sobel_operator_3x3(image_t *image) {
+    static int kernel[3][3] = {
+        {-1,-2,-1},
+        { 0, 0, 0},
+        { 1, 2, 1},
+    };
+
+    apply_kernel(image, 3, kernel, 1);
+}
+
