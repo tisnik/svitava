@@ -760,3 +760,23 @@ void filter_vertical_sobel_operator_3x3(image_t *image) {
     apply_kernel(image, 3, kernel, 1);
 }
 
+/**
+ * Apply a 3×3 Laplacian filter to the image in-place, enhancing edges.
+ *
+ * Applies the 3×3 Laplacian kernel:
+ *   [ 0 -1  0 ]
+ *   [-1  4 -1 ]
+ *   [ 0 -1  0 ]
+ *
+ * @param image Image whose pixel buffer will be filtered in-place. If `image` is NULL or has no pixel buffer, the function returns without modifying it.
+ */
+void filter_laplacian_3x3(image_t *image) {
+    static int kernel[3][3] = {
+        { 0,-1, 0},
+        {-1, 4,-1},
+        { 0,-1, 0},
+    };
+
+    apply_kernel(image, 3, kernel, 1);
+}
+
