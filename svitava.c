@@ -548,12 +548,12 @@ void apply_kernel(image_t *image, int size, int kernel[size][size], int divisor)
  * Apply a 3×3 weighted smoothing filter to the given image in-place.
  *
  * Uses a 3×3 kernel with weights:
- *   1 1 1
- *   1 1 1
- *   1 1 1
+ *   [ 1, 1, 1 ]
+ *   [ 1, 1, 1 ]
+ *   [ 1, 1, 1 ]
  * and a divisor of 9 to perform a weighted average of each pixel's neighbourhood.
  *
- * @param image Image to be filtered; its pixel data is modified in-place.
+ * @param image Image to be filtered; the pixel buffer is modified in-place. If `image` or its pixel buffer is NULL, no action is taken.
  */
 void filter_smooth_3x3_block(image_t *image) {
     static int kernel[3][3] = {
@@ -569,12 +569,12 @@ void filter_smooth_3x3_block(image_t *image) {
  * Apply a 3×3 Gaussian-like smoothing filter to the provided image in-place.
  *
  * Uses the 3×3 kernel with weights:
- *   1 2 1
- *   2 4 2
- *   1 2 1
+ *   [ 1, 2, 1 ]
+ *   [ 2, 4, 2 ]
+ *   [ 1, 2, 1 ]
  * and a divisor of 16 to perform smoothing.
  *
- * @param image Image to be filtered; modified in-place. If `image` or its pixel buffer is NULL, the function does nothing.
+ * @param image Image to be filtered; the pixel buffer is modified in-place. If `image` or its pixel buffer is NULL, no action is taken.
  */
 void filter_smooth_3x3_gauss(image_t *image) {
     static int kernel[3][3] = {
@@ -590,11 +590,11 @@ void filter_smooth_3x3_gauss(image_t *image) {
  * Apply a 3×3 sharpening filter to the image in place.
  *
  * Uses the 3×3 kernel with weights:
- *    0 -1  0
- *   -1  5 -1
- *    0 -1  0
+ *   [ 0, -1,  0 ]
+ *   [-1,  5, -1 ]
+ *   [ 0, -1,  0 ]
  *
- * @param image Image whose pixels will be modified by the sharpening filter.
+ * @param image Image to be filtered; the pixel buffer is modified in-place. If `image` or its pixel buffer is NULL, no action is taken.
  */
 void filter_sharpen_3x3(image_t *image) {
     static int kernel[3][3] = {
@@ -611,12 +611,14 @@ void filter_sharpen_3x3(image_t *image) {
  *
  * This filter highlights regions of rapid intensity change (edges) by computing the
  * second derivative approximation. Edges appear as bright pixels; negative values
- * are clamped to zero. Uses the kernel:
- *    0 -1  0
- *   -1  4 -1
- *    0 -1  0
+ * are clamped to zero.
  *
- * @param image Image to filter; no action is taken if `image` is NULL or has no pixel buffer.
+ * The kernel applied is:
+ *   [ 0, -1,  0 ]
+ *   [-1,  4, -1 ]
+ *   [ 0, -1,  0 ]
+ *
+ * @param image Image to be filtered; the pixel buffer is modified in-place. If `image` or its pixel buffer is NULL, no action is taken.
  */
 void filter_edge_detection_3x3_1(image_t *image) {
     static int kernel[3][3] = {
@@ -633,12 +635,13 @@ void filter_edge_detection_3x3_1(image_t *image) {
  *
  * This filter highlights regions of rapid intensity change (edges) using all eight
  * neighboring pixels. Edges appear as bright pixels; negative values are clamped to zero.
- * Uses the kernel:
- *   -1 -1 -1
- *   -1  8 -1
- *   -1 -1 -1
  *
- * @param image Image to filter; no action is taken if `image` is NULL or has no pixel buffer.
+ * The kernel applied is:
+ *   [-1, -1, -1 ]
+ *   [-1,  8, -1 ]
+ *   [-1, -1, -1 ]
+ *
+ * @param image Image to be filtered; the pixel buffer is modified in-place. If `image` or its pixel buffer is NULL, no action is taken.
  */
 void filter_edge_detection_3x3_2(image_t *image) {
     static int kernel[3][3] = {
@@ -674,3 +677,85 @@ void filter_edge_detection_3x3_3(image_t *image) {
     apply_kernel(image, 3, kernel, 1);
 }
 
+/**
+ * Apply a 3×3 horizontal edge-detection filter to an image in-place.
+ *
+ * The kernel applied is:
+ *   [-1, -1, -1]
+ *   [ 0,  0,  0]
+ *   [ 1,  1,  1]
+ *
+ * @param image Image to be filtered; the pixel buffer is modified in-place. If `image` or its pixel buffer is NULL, no action is taken.
+ */
+void filter_horizontal_edge_detection_3x3(image_t *image) {
+    static int kernel[3][3] = {
+        {-1,-1,-1},
+        { 0, 0, 0},
+        { 1, 1, 1},
+    };
+
+    apply_kernel(image, 3, kernel, 1);
+}
+
+/**
+ * Apply a 3×3 vertical edge-detection filter to the image in-place.
+ *
+ * The filter highlights vertical edges by convolving the image with a 3×3
+ * vertical edge-detection kernel.
+ *
+ * The kernel applied is:
+ *   [-1,  0,  1]
+ *   [-1,  0,  1]
+ *   [-1,  0,  1]
+ *
+ * @param image Image to be filtered; the pixel buffer is modified in-place. If `image` or its pixel buffer is NULL, no action is taken.
+ */
+void filter_vertical_edge_detection_3x3(image_t *image) {
+    static int kernel[3][3] = {
+        {-1, 0, 1},
+        {-1, 0, 1},
+        {-1, 0, 1},
+    };
+
+    apply_kernel(image, 3, kernel, 1);
+}
+
+/**
+ * Apply the 3×3 horizontal Sobel operator to the given image, modifying pixels in-place.
+ *
+ * The kernel applied is:
+ *   [-1,  0,  1]
+ *   [-2,  0,  2]
+ *   [-1,  0,  1]
+ *
+ * @param image Image to be filtered; the pixel buffer is modified in-place. If `image` or its pixel buffer is NULL, no action is taken.
+ */
+void filter_horizontal_sobel_operator_3x3(image_t *image) {
+    static int kernel[3][3] = {
+        {-1, 0, 1},
+        {-2, 0, 2},
+        {-1, 0, 1},
+    };
+
+    apply_kernel(image, 3, kernel, 1);
+}
+
+/**
+ * Apply the 3×3 vertical Sobel operator to the given image, modifying pixels in-place.
+ *
+ * The kernel applied is:
+ *   [-1, -2, -1]
+ *   [ 0,  0,  0]
+ *   [ 1,  2,  1]
+ *
+ * @param image Image to be filtered; the pixel buffer is modified in-place. If `image` or its pixel buffer is NULL, no action is taken.
+ */
+void filter_vertical_sobel_operator_3x3(image_t *image) {
+    static int kernel[3][3] = {
+        {-1,-2,-1},
+        { 0, 0, 0},
+        { 1, 2, 1},
+    };
+
+    apply_kernel(image, 3, kernel, 1);
+}
