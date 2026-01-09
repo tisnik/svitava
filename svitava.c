@@ -712,3 +712,17 @@ void filter_vertical_edge_detection_3x3(image_t *image) {
     apply_kernel(image, 3, kernel, 1);
 }
 
+/**
+ * Apply the 3×3 horizontal Sobel operator to the given image, modifying pixels in-place.
+ * @param image Image to filter; its pixel buffer is updated with the horizontal Sobel result.
+ */
+void filter_horizontal_sobel_operator_3x3(image_t *image) {
+    static int kernel[3][3] = {
+        {-1, 0, 1},
+        {-2, 0, 2},
+        {-1, 0, 1},
+    };
+
+    apply_kernel(image, 3, kernel, 1);
+}
+
