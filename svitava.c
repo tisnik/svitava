@@ -694,3 +694,21 @@ void filter_horizontal_edge_detection_3x3(image_t *image) {
     apply_kernel(image, 3, kernel, 1);
 }
 
+/**
+ * Apply a 3×3 vertical edge-detection filter to the image in-place.
+ *
+ * The filter highlights vertical edges by convolving the image with a 3×3
+ * vertical edge-detection kernel.
+ *
+ * @param image Image to be filtered; if `image` is NULL or `image->pixels` is NULL, no action is taken.
+ */
+void filter_vertical_edge_detection_3x3(image_t *image) {
+    static int kernel[3][3] = {
+        {-1, 0, 1},
+        {-1, 0, 1},
+        {-1, 0, 1},
+    };
+
+    apply_kernel(image, 3, kernel, 1);
+}
+
