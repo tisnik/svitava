@@ -22,6 +22,24 @@ build as executable:
     gcc -lm -o svitava svitava.c
 */
 
+/*
+Overall structure:
+------------------
+
+Raster image filters implemented:
+---------------------------------
+filter_smooth_3x3_block
+filter_smooth_3x3_gauss
+filter_sharpen_3x3
+filter_edge_detection_3x3_1
+filter_edge_detection_3x3_2
+filter_edge_detection_3x3_3
+filter_horizontal_edge_detection_3x3
+filter_vertical_edge_detection_3x3
+filter_horizontal_sobel_operator_3x3
+filter_vertical_sobel_operator_3x3
+*/
+
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
