@@ -777,3 +777,39 @@ void filter_vertical_sobel_operator_3x3(image_t *image) {
 
     apply_kernel(image, 3, kernel, 1);
 }
+
+/*
+ * Interleave pixels from two source images into a destination image using a horizontal pattern.
+ *
+ * For each pixel position (x,y), selects the pixel from `src1` when x is odd and from `src2` when x is even, then writes that RGBA pixel into `dest`.
+ *
+ * @param src1 Source image providing pixels for odd columns; must have the same dimensions as `src2` and `dest`.
+ * @param src2 Source image providing pixels for even columns; must have the same dimensions as `src1` and `dest`.
+ * @param dest Destination image receiving the interleaved pixels; must have the same dimensions as `src1` and `src2`.
+ */
+void composite_horizontal_interlace(const image_t *src1, const image_t *src2, image_t *dest) {
+    unsigned int i, j;
+    /* validate inputs */
+    if (!src1 || !src2 || !dest) {
+        return;
+    }
+
+    /* ensure all images have the same dimensions */
+    if (src1->width != src2->width || src1->height != src2->height ||
+        src1->width != dest->width || src1->height != dest->height) {
+        return;
+    }
+
+    for (j = 0; j < src1->height; j++) {
+        for (i = 0; i < src1->width; i++) {
+            unsigned char r, g, b, a;
+            int           which = i % 2;
+            if (which) {
+                image_getpixel(src1, i, j, &r, &g, &b, &a);
+            } else {
+                image_getpixel(src2, i, j, &r, &g, &b, &a);
+            }
+            image_putpixel(dest, i, j, r, g, b, a);
+        }
+    }
+}
