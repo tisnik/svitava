@@ -777,3 +777,156 @@ void filter_vertical_sobel_operator_3x3(image_t *image) {
 
     apply_kernel(image, 3, kernel, 1);
 }
+
+/**
+ * Validate that three images are suitable for composition operations.
+ * Returns 1 if valid, 0 otherwise.
+ */
+static int validate_composition_inputs(const image_t *src1, const image_t *src2, const image_t *dest) {
+    /* validate inputs */
+    if (!src1 || !src2 || !dest) {
+        return 0;
+    }
+
+    /* pixel buffers must exist */
+    if (!src1->pixels || !src2->pixels || !dest->pixels) {
+        return 0;
+    }
+
+    /* validate supported formats */
+    if ((src1->bpp != GRAYSCALE && src1->bpp != RGB && src1->bpp != RGBA) ||
+        (src2->bpp != GRAYSCALE && src2->bpp != RGB && src2->bpp != RGBA) ||
+        (dest->bpp != GRAYSCALE && dest->bpp != RGB && dest->bpp != RGBA)) {
+        return 0;
+    }
+
+    /* ensure all images have the same dimensions */
+    if (src1->width != src2->width || src1->height != src2->height ||
+        src1->width != dest->width || src1->height != dest->height) {
+        return 0;
+    }
+
+    return 1;
+}
+
+/*
+ * Interleave pixels from two source images into a destination image using a horizontal pattern.
+ *
+ * For each pixel position (x,y), selects the pixel from `src1` when x is odd and from `src2` when x is even, then writes that RGBA pixel into `dest`.
+ *
+ * @param src1 Source image providing pixels for odd columns; must have the same dimensions as `src2` and `dest`.
+ * @param src2 Source image providing pixels for even columns; must have the same dimensions as `src1` and `dest`.
+ * @param dest Destination image receiving the interleaved pixels; must have the same dimensions as `src1` and `src2`.
+ */
+void composite_horizontal_interlace(const image_t *src1, const image_t *src2, image_t *dest) {
+    unsigned int i, j;
+
+    if (!validate_composition_inputs(src1, src2, dest)) {
+        return;
+    }
+
+    for (j = 0; j < src1->height; j++) {
+        for (i = 0; i < src1->width; i++) {
+            unsigned char r, g, b, a;
+            int           which = i % 2;
+            if (which) {
+                image_getpixel(src1, i, j, &r, &g, &b, &a);
+            } else {
+                image_getpixel(src2, i, j, &r, &g, &b, &a);
+            }
+            image_putpixel(dest, i, j, r, g, b, a);
+        }
+    }
+}
+
+/**
+ * Interleave pixels from two source images into a destination image using a vertical pattern.
+ *
+ * For each pixel position, pixels on odd-numbered rows are taken from `src1`
+ * and pixels on even-numbered rows are taken from `src2`; the selected RGBA
+ * values are written into `dest` at the same coordinates.
+ *
+ * @param src1 Source image supplying pixels for odd rows.
+ * @param src2 Source image supplying pixels for even rows.
+ * @param dest Destination image receiving the interleaved pixels.
+ */
+void composite_vertical_interlace(const image_t *src1, const image_t *src2, image_t *dest) {
+    unsigned int i, j;
+
+    if (!validate_composition_inputs(src1, src2, dest)) {
+        return;
+    }
+
+    for (j = 0; j < src1->height; j++) {
+        for (i = 0; i < src1->width; i++) {
+            unsigned char r, g, b, a;
+            int           which = j % 2;
+            if (which) {
+                image_getpixel(src1, i, j, &r, &g, &b, &a);
+            } else {
+                image_getpixel(src2, i, j, &r, &g, &b, &a);
+            }
+            image_putpixel(dest, i, j, r, g, b, a);
+        }
+    }
+}
+
+/**
+ * Compose a destination image by selecting pixels from two sources in a checkerboard pattern.
+ *
+ * For each coordinate (i, j), the destination receives the pixel from `src1` when (i + j) is odd;
+ * otherwise the pixel is taken from `src2`.
+ *
+ * @param src1 Source image providing pixels for one set of checkerboard positions.
+ * @param src2 Source image providing pixels for the alternating checkerboard positions.
+ * @param dest Destination image where the composed pixels are written. Must have the same dimensions
+ *             as `src1` and `src2`.
+ */
+void composite_checkberboard_interlace(const image_t *src1, const image_t *src2, image_t *dest) {
+    unsigned int i, j;
+
+    if (!validate_composition_inputs(src1, src2, dest)) {
+        return;
+    }
+
+    for (j = 0; j < src1->height; j++) {
+        for (i = 0; i < src1->width; i++) {
+            unsigned char r, g, b, a;
+            int           which = (i % 2) ^ (j % 2);
+            if (which) {
+                image_getpixel(src1, i, j, &r, &g, &b, &a);
+            } else {
+                image_getpixel(src2, i, j, &r, &g, &b, &a);
+            }
+            image_putpixel(dest, i, j, r, g, b, a);
+        }
+    }
+}
+
+/**
+ * Blend two source images into a destination by averaging corresponding RGBA channels.
+ *
+ * Each destination pixel is written with the per-channel average of the two source pixels:
+ * channel = (channel_src1 + channel_src2) >> 1 (integer division by 2).
+ *
+ * @param src1 First source image; its width and height determine the processed area.
+ * @param src2 Second source image; pixels are read at the same coordinates as src1.
+ * @param dest Destination image that will be written with the blended pixels.
+ */
+void composite_blend(const image_t *src1, const image_t *src2, image_t *dest) {
+    unsigned int i, j;
+
+    if (!validate_composition_inputs(src1, src2, dest)) {
+        return;
+    }
+
+    for (j = 0; j < src1->height; j++) {
+        for (i = 0; i < src1->width; i++) {
+            unsigned char r1, g1, b1, a1;
+            unsigned char r2, g2, b2, a2;
+            image_getpixel(src1, i, j, &r1, &g1, &b1, &a1);
+            image_getpixel(src2, i, j, &r2, &g2, &b2, &a2);
+            image_putpixel(dest, i, j, (r1 + r2) >> 1, (g1 + g2) >> 1, (b1 + b2) >> 1, (a1 + a2) >> 1);
+        }
+    }
+}
