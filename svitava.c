@@ -882,7 +882,7 @@ void composite_vertical_interlace(const image_t *src1, const image_t *src2, imag
  * @param dest Destination image where the composed pixels are written. Must have the same dimensions
  *             as `src1` and `src2`.
  */
-void composite_checkboard_interlace(const image_t *src1, const image_t *src2, image_t *dest) {
+void composite_checkberboard_interlace(const image_t *src1, const image_t *src2, image_t *dest) {
     unsigned int i, j;
 
     if (!validate_composition_inputs(src1, src2, dest)) {
@@ -899,6 +899,34 @@ void composite_checkboard_interlace(const image_t *src1, const image_t *src2, im
                 image_getpixel(src2, i, j, &r, &g, &b, &a);
             }
             image_putpixel(dest, i, j, r, g, b, a);
+        }
+    }
+}
+
+/**
+ * Blend two source images into a destination by averaging corresponding RGBA channels.
+ *
+ * Each destination pixel is written with the per-channel average of the two source pixels:
+ * channel = (channel_src1 + channel_src2) >> 1 (integer division by 2).
+ *
+ * @param src1 First source image; its width and height determine the processed area.
+ * @param src2 Second source image; pixels are read at the same coordinates as src1.
+ * @param dest Destination image that will be written with the blended pixels.
+ */
+void composite_blend(const image_t *src1, const image_t *src2, image_t *dest) {
+    unsigned int i, j;
+
+    if (!validate_composition_inputs(src1, src2, dest)) {
+        return;
+    }
+
+    for (j = 0; j < src1->height; j++) {
+        for (i = 0; i < src1->width; i++) {
+            unsigned char r1, g1, b1, a1;
+            unsigned char r2, g2, b2, a2;
+            image_getpixel(src1, i, j, &r1, &g1, &b1, &a1);
+            image_getpixel(src2, i, j, &r2, &g2, &b2, &a2);
+            image_putpixel(dest, i, j, (r1 + r2) >> 1, (g1 + g2) >> 1, (b1 + b2) >> 1, (a1 + a2) >> 1);
         }
     }
 }
