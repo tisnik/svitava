@@ -875,3 +875,53 @@ void composite_vertical_interlace(const image_t *src1, const image_t *src2, imag
         }
     }
 }
+
+/**
+ * Compose a destination image by selecting pixels from two sources in a checkerboard pattern.
+ *
+ * For each coordinate (i, j), the destination receives the pixel from `src1` when (i + j) is odd;
+ * otherwise the pixel is taken from `src2`.
+ *
+ * @param src1 Source image providing pixels for one set of checkerboard positions.
+ * @param src2 Source image providing pixels for the alternating checkerboard positions.
+ * @param dest Destination image where the composed pixels are written. Must have the same dimensions
+ *             as `src1` and `src2`.
+ */
+void composite_interlace(const image_t *src1, const image_t *src2, image_t *dest) {
+    unsigned int i, j;
+    /* validate inputs */
+    if (!src1 || !src2 || !dest) {
+        return;
+    }
+
+    /* pixel buffers must exist */
+    if (!src1->pixels || !src2->pixels || !dest->pixels) {
+        return;
+    }
+
+    /* validate supported formats */
+    if ((src1->bpp != GRAYSCALE && src1->bpp != RGB && src1->bpp != RGBA) ||
+        (src2->bpp != GRAYSCALE && src2->bpp != RGB && src2->bpp != RGBA) ||
+        (dest->bpp != GRAYSCALE && dest->bpp != RGB && dest->bpp != RGBA)) {
+        return;
+    }
+
+    /* ensure all images have the same dimensions */
+    if (src1->width != src2->width || src1->height != src2->height ||
+        src1->width != dest->width || src1->height != dest->height) {
+        return;
+    }
+
+    for (j = 0; j < src1->height; j++) {
+        for (i = 0; i < src1->width; i++) {
+            unsigned char r, g, b, a;
+            int           which = (i % 2) ^ (j % 2);
+            if (which) {
+                image_getpixel(src1, i, j, &r, &g, &b, &a);
+            } else {
+                image_getpixel(src2, i, j, &r, &g, &b, &a);
+            }
+            image_putpixel(dest, i, j, r, g, b, a);
+        }
+    }
+}
