@@ -958,3 +958,22 @@ void ppm_write_ascii_to_stream(unsigned int width, unsigned int height,
         }
     }
 }
+
+void ppm_write_binary_to_stream(unsigned int width, unsigned int height,
+                                unsigned char *pixels, FILE *fout) {
+    int            x, y;
+    unsigned char  rgb[3];
+    unsigned char *p = pixels;
+
+    /* header */
+    fprintf(fout, "P6 %d %d 255\n", width, height);
+
+    /* pixel array */
+    for (y = height - 1; y >= 0; y--) {
+        for (x = 0; x < width; x++) {
+            memcpy(rgb, p, 3);
+            p+=4;
+            fwrite(rgb, sizeof(rgb), 1, fout);
+        }
+    }
+}
