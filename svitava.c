@@ -930,3 +930,31 @@ void composite_blend(const image_t *src1, const image_t *src2, image_t *dest) {
         }
     }
 }
+
+/**
+ * Writes pixel data to a file stream in ASCII PPM (P3) format.
+ *
+ * The output image is written from bottom to top, with each pixel's RGB values
+ * output as text. Assumes the pixel buffer uses 4 bytes per pixel, with the
+ * fourth byte ignored.
+ */
+void ppm_write_ascii_to_stream(unsigned int width, unsigned int height,
+                               unsigned char *pixels, FILE *fout) {
+    int            x, y;
+    unsigned char  r, g, b;
+    unsigned char *p = pixels;
+
+    /* header */
+    fprintf(fout, "P3 %d %d 255\n", width, height);
+
+    /* pixel array */
+    for (y = height - 1; y >= 0; y--) {
+        for (x = 0; x < width; x++) {
+            r = *p++;
+            g = *p++;
+            b = *p++;
+            p++;
+            fprintf(fout, "%d %d %d\n", r, g, b);
+        }
+    }
+}
