@@ -977,3 +977,30 @@ void ppm_write_binary_to_stream(unsigned int width, unsigned int height,
         }
     }
 }
+
+/**
+ * Writes pixel data to a file in ASCII PPM (P3) format.
+ *
+ * @param width Image width in pixels.
+ * @param height Image height in pixels.
+ * @param pixels Pointer to the pixel buffer (assumed 4 bytes per pixel, RGB in
+ * first 3 bytes).
+ * @param file_name Name of the output file.
+ * @return 0 on success, -1 on failure to open or close the file.
+ */
+int image_export_ppm_ascii(unsigned int width, unsigned int height,
+                    unsigned char *pixels, const char *file_name) {
+    FILE *fout;
+
+    fout = fopen(file_name, "wb");
+    if (!fout) {
+        return -1;
+    }
+
+    ppm_write_ascii_to_stream(width, height, pixels, fout);
+
+    if (fclose(fout) == EOF) {
+        return -1;
+    }
+    return 0;
+}
