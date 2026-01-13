@@ -1072,6 +1072,14 @@ int image_export_bmp(unsigned int width, unsigned int height, unsigned char *pix
     FILE *fout;
     int   x, y;
 
+    /* BMP rows must be padded to 4-byte boundaries */
+    unsigned int row_padding = (4 - (width * 3) % 4) % 4;
+    unsigned char pad[3] = {0, 0, 0};
+
+    if (pixels == NULL || file_name == NULL) {
+        return -1;
+    }
+
     /* initialize BMP header */
     bmp_header[18] = width & 0xff;
     bmp_header[19] = (width >> 8) & 0xff;
@@ -1084,7 +1092,7 @@ int image_export_bmp(unsigned int width, unsigned int height, unsigned char *pix
 
     fout = fopen(file_name, "wb");
     if (!fout) {
-        return 1;
+        return -1;
     }
 
     /* write BMP header */
@@ -1101,6 +1109,10 @@ int image_export_bmp(unsigned int width, unsigned int height, unsigned char *pix
             fwrite(p, 1, 1, fout);
             /* move to next pixel on scan line */
             p += 4;
+        }
+        /* write padding bytes to align row to 4-byte boundary */
+        if (row_padding > 0) {
+            fwrite(pad, 1, row_padding, fout);
         }
     }
     fclose(fout);
