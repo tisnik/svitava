@@ -1150,8 +1150,8 @@ int image_export_tga(unsigned int width, unsigned int height,
     unsigned char        header[sizeof true_color_tga_header];
     int                  i;
 
-    if (pixels == NULL) {
-        return 1;
+    if (pixels == NULL || file_name == NULL) {
+        return -1;
     }
 
     /* prepare a local header copy to avoid mutating the global template */
