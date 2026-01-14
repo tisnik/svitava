@@ -38,6 +38,25 @@ filter_horizontal_edge_detection_3x3
 filter_vertical_edge_detection_3x3
 filter_horizontal_sobel_operator_3x3
 filter_vertical_sobel_operator_3x3
+
+Image compositors:
+--------------------
+composite_interlace
+composite_horizontal_interlace
+composite_vertical_interlace
+composite_blend
+
+Image export operations:
+------------------------
+image_export_ppm_ascii
+image_export_ppm_binary
+image_export_bmp
+image_export_tga
+
+Image import operations:
+------------------------
+
+
 */
 
 #include <stddef.h>
