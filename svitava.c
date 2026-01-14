@@ -1118,3 +1118,78 @@ int image_export_bmp(unsigned int width, unsigned int height, unsigned char *pix
     fclose(fout);
     return 0;
 }
+
+static const unsigned char true_color_tga_header[] = {
+    0x00,                   /* without image ID */
+    0x00,                   /* color map type: without palette */
+    0x02,                   /* uncompressed true color image */
+    0x00, 0x00,             /* start of color palette (it is not used) */
+    0x00, 0x00,             /* length of color palette (it is not used) */
+    0x00,                   /* bits per palette entry */
+    0x00, 0x00, 0x00, 0x00, /* image coordinates */
+    0x00, 0x00,             /* image width */
+    0x00, 0x00,             /* image height */
+    0x18,                   /* bits per pixel = 24 */
+    0x20                    /* picture orientation: top-left origin */
+};
+
+/**
+ * Export raw RGBA pixel data as an uncompressed 24-bit TGA image (top-left origin).
+ *
+ * Expects pixels in 4-byte RGBA order; writes width*height pixels as BGR triplets (alpha byte is ignored).
+ * @param width Image width in pixels.
+ * @param height Image height in pixels.
+ * @param pixels Pointer to pixel buffer containing width*height*4 bytes in RGBA order.
+ * @param file_name Destination file path for the TGA output.
+ * @returns 0 on success, 1 if `pixels` is NULL, -1 on file open/write/close failure.
+ */
+int image_export_tga(unsigned int width, unsigned int height,
+              const unsigned char *pixels, const char *file_name) {
+    FILE                *fout;
+    const unsigned char *p = pixels;
+    unsigned char        header[sizeof true_color_tga_header];
+    int                  i;
+
+    if (pixels == NULL) {
+        return 1;
+    }
+
+    /* prepare a local header copy to avoid mutating the global template */
+    memcpy(header, true_color_tga_header, sizeof header);
+
+    fout = fopen(file_name, "wb");
+    if (!fout) {
+        return -1;
+    }
+    /* image size is specified in TGA header */
+    header[12] = (width) & 0xff;
+    header[13] = (width) >> 8;
+    header[14] = (height) & 0xff;
+    header[15] = (height) >> 8;
+
+    /* write TGA header */
+    if (fwrite(header, sizeof header, 1, fout) != 1) {
+        fclose(fout);
+        return -1;
+    }
+
+    /* write the whole pixel array into TGA file */
+    for (i = 0; i < width * height; i++) {
+        /* swap RGB to BGR */
+        unsigned char bgr[3];
+        bgr[0] = p[2];
+        bgr[1] = p[1];
+        bgr[2] = p[0];
+        /* write RGB, but not alpha */
+        if (fwrite(bgr, sizeof bgr, 1, fout) != 1) {
+            fclose(fout);
+            return -1;
+        }
+        p += 4; /* skip alpha */
+    }
+
+    if (fclose(fout) == EOF) {
+        return -1;
+    }
+    return 0;
+}
