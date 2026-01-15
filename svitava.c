@@ -1273,6 +1273,38 @@ void render_test_rgb_image(const image_t *image, const unsigned char *palette,
     }
 }
 
+/**
+ * Fills the pixel buffer with a test image using colors from the palette
+ * indexed by the x-coordinate.
+ *
+ * Each pixel in the image is assigned a color from the palette based on its
+ * horizontal position, creating vertical color bands.
+ */
+void render_test_palette_image(const image_t *image, const unsigned char *palette) {
+    unsigned int   i, j;
+    unsigned char *p;
+    unsigned int   div_x;
+
+    if (image == NULL || image->pixels == NULL) {
+        return;
+    }
+
+    /* avoid division by zero */
+    if (image->width == 0 || image->height == 0) {
+        return;
+    }
+
+    *p = image->pixels;
+    div_x = image->width / 256;
+
+    for (j = 0; j < image->height; j++) {
+        for (i = 0; i < image->width; i++) {
+            int color = i / div_x;
+            putpixel(&p, palette, color);
+        }
+    }
+}
+
 int main(int argc, char **argv) {
 
     return 0;
