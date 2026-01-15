@@ -1246,9 +1246,22 @@ void putpixel(unsigned char **pixel, const unsigned char *palette,
 void render_test_rgb_image(const image_t *image, const unsigned char *palette,
                            unsigned char green) {
     unsigned int   i, j;
-    unsigned char *p = image->pixels;
-    unsigned int   div_x = image->width / 256;
-    unsigned int   div_y = image->height / 256;
+    unsigned char *p;
+    unsigned int   div_x, div_y;
+
+    if (image == NULL || image->pixels == NULL) {
+        return;
+    }
+
+    /* avoid division by zero */
+    if (image->width == 0 || image->height == 0) {
+        return;
+    }
+
+    p = image->pixels;
+
+    div_x = image->width / 256;
+    div_y = image->height / 256;
 
     for (j = 0; j < image->height; j++) {
         for (i = 0; i < image->width; i++) {
