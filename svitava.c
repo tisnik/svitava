@@ -56,10 +56,14 @@ image_export_tga
 Image import operations:
 ------------------------
 
+Renderers implemented:
+----------------------
+
 
 */
 
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -1210,5 +1214,27 @@ int image_export_tga(unsigned int width, unsigned int height,
     if (fclose(fout) == EOF) {
         return -1;
     }
+    return 0;
+}
+
+/**
+ * Writes an RGB color from the palette at the specified index into the pixel
+ * buffer and advances the pixel pointer by 4 bytes.
+ *
+ * @returns none
+ */
+void putpixel(unsigned char **pixel, const unsigned char *palette,
+              int color_index) {
+    int            color_offset = color_index * 3;
+    unsigned char *pal = (unsigned char *)(palette + color_offset);
+
+    *(*pixel)++ = *pal++;
+    *(*pixel)++ = *pal++;
+    *(*pixel)++ = *pal;
+    (*pixel)++;
+}
+
+int main(int argc, char **argv) {
+
     return 0;
 }
