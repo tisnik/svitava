@@ -56,10 +56,14 @@ image_export_tga
 Image import operations:
 ------------------------
 
+Renderers implemented:
+----------------------
+
 
 */
 
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -1210,5 +1214,98 @@ int image_export_tga(unsigned int width, unsigned int height,
     if (fclose(fout) == EOF) {
         return -1;
     }
+    return 0;
+}
+
+/**
+ * Writes an RGB color from the palette at the specified index into the pixel
+ * buffer and advances the pixel pointer by 4 bytes.
+ *
+ * @returns none
+ */
+void putpixel(unsigned char **pixel, const unsigned char *palette,
+              int color_index) {
+    int            color_offset = color_index * 3;
+    unsigned char *pal = (unsigned char *)(palette + color_offset);
+
+    *(*pixel)++ = *pal++;
+    *(*pixel)++ = *pal++;
+    *(*pixel)++ = *pal;
+    (*pixel)++;
+}
+
+/**
+ * Fills the pixel buffer with a test RGB image where the red channel is set to
+ * the x-coordinate, the green channel is set to a fixed value, and the blue
+ * channel is set to the y-coordinate.
+ *
+ * The pixel buffer is assumed to use 4 bytes per pixel, with the fourth byte
+ * unused or as padding.
+ * @param green Value to assign to the green channel for all pixels.
+ */
+void render_test_rgb_image(const image_t *image, const unsigned char *palette,
+                           unsigned char green) {
+    unsigned int   i, j;
+    unsigned char *p;
+    unsigned int   div_x, div_y;
+
+    if (image == NULL || image->pixels == NULL) {
+        return;
+    }
+
+    /* avoid division by zero */
+    if (image->width == 0 || image->height == 0) {
+        return;
+    }
+
+    p = image->pixels;
+
+    div_x = image->width / 256;
+    div_y = image->height / 256;
+
+    for (j = 0; j < image->height; j++) {
+        for (i = 0; i < image->width; i++) {
+            *p++ = i / div_x;
+            *p++ = green;
+            *p++ = j / div_y;
+            p++;
+        }
+    }
+}
+
+/**
+ * Fills the pixel buffer with a test image using colors from the palette
+ * indexed by the x-coordinate.
+ *
+ * Each pixel in the image is assigned a color from the palette based on its
+ * horizontal position, creating vertical color bands.
+ */
+void render_test_palette_image(const image_t *image, const unsigned char *palette) {
+    unsigned int   i, j;
+    unsigned char *p;
+    unsigned int   div_x;
+
+    if (image == NULL || image->pixels == NULL) {
+        return;
+    }
+
+    /* avoid division by zero */
+    if (image->width == 0 || image->height == 0) {
+        return;
+    }
+
+    *p = image->pixels;
+    div_x = image->width / 256;
+
+    for (j = 0; j < image->height; j++) {
+        for (i = 0; i < image->width; i++) {
+            int color = i / div_x;
+            putpixel(&p, palette, color);
+        }
+    }
+}
+
+int main(int argc, char **argv) {
+
     return 0;
 }
