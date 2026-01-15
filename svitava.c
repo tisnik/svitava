@@ -1234,6 +1234,32 @@ void putpixel(unsigned char **pixel, const unsigned char *palette,
     (*pixel)++;
 }
 
+/**
+ * Fills the pixel buffer with a test RGB image where the red channel is set to
+ * the x-coordinate, the green channel is set to a fixed value, and the blue
+ * channel is set to the y-coordinate.
+ *
+ * The pixel buffer is assumed to use 4 bytes per pixel, with the fourth byte
+ * unused or as padding.
+ * @param green Value to assign to the green channel for all pixels.
+ */
+void render_test_rgb_image(const image_t *image, const unsigned char *palette,
+                           unsigned char green) {
+    unsigned int   i, j;
+    unsigned char *p = image->pixels;
+    unsigned int   div_x = image->width / 256;
+    unsigned int   div_y = image->height / 256;
+
+    for (j = 0; j < image->height; j++) {
+        for (i = 0; i < image->width; i++) {
+            *p++ = i / div_x;
+            *p++ = green;
+            *p++ = j / div_y;
+            p++;
+        }
+    }
+}
+
 int main(int argc, char **argv) {
 
     return 0;
