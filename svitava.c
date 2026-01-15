@@ -1294,7 +1294,7 @@ void render_test_palette_image(const image_t *image, const unsigned char *palett
         return;
     }
 
-    *p = image->pixels;
+    p = image->pixels;
     div_x = image->width / 256;
 
     for (j = 0; j < image->height; j++) {
@@ -1305,7 +1305,10 @@ void render_test_palette_image(const image_t *image, const unsigned char *palett
     }
 }
 
+#ifndef NO_MAIN
 int main(int argc, char **argv) {
 
     return 0;
 }
+#endif
+
