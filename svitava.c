@@ -132,14 +132,26 @@ size_t image_size(const image_t *image) {
  */
 image_t image_create(const unsigned int width, const unsigned int height, const unsigned int bpp) {
     image_t image;
-    /* validate parameters */
-    if (width == 0 || height == 0 || width > MAX_WIDTH || height > MAX_HEIGHT || (bpp != GRAYSCALE && bpp != RGB && bpp != RGBA)) {
+
+    /* validate image size */
+    if (width == 0 || height == 0 || width > MAX_WIDTH || height > MAX_HEIGHT) {
         image.width = 0;
         image.height = 0;
         image.bpp = 0;
         image.pixels = NULL;
         return image;
     }
+
+    /* validate image type */
+    if (bpp != GRAYSCALE && bpp != RGB && bpp != RGBA) {
+        image.width = 0;
+        image.height = 0;
+        image.bpp = 0;
+        image.pixels = NULL;
+        return image;
+    }
+
+    /* initialize image */
     image.width = width;
     image.height = height;
     image.bpp = bpp;
