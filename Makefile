@@ -15,6 +15,21 @@ clean:
 run:	$(EXENAME)
 	./$(EXENAME)
 
+test:
+	gcc -fprofile-arcs -ftest-coverage -DNO_MAIN test.c -o test
+
+coverage.html:	test.gcda
+	gcovr --html-details coverage.html -e test.c
+
+test.gcda:	test
+	./test
+
+coverage.info:
+	lcov --capture --directory . --output-file coverage.info
+
+index.html:	coverage.info
+	genhtml coverage.info --output-directory .
+
 OBJFILES=$(OBJDIR)/main.o $(OBJDIR)/pixmap.o $(OBJDIR)/bmp_writer.o $(OBJDIR)/ppm_writer.o $(OBJDIR)/png_writer.o $(OBJDIR)/mandelbrot.o
 
 
