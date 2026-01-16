@@ -90,6 +90,15 @@ typedef struct {
     unsigned char *pixels;
 } image_t;
 
+enum error {
+    OK,
+    NULL_POINTER,
+    NULL_IMAGE_POINTER,
+    NULL_PIXELS_POINTER,
+    INVALID_IMAGE_DIMENSION,
+    INVALID_IMAGE_TYPE,
+};
+
 /**
  * Compute the total size in bytes of an image's pixel buffer.
  *
