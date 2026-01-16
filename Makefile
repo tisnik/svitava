@@ -15,7 +15,7 @@ clean:
 run:	$(EXENAME)
 	./$(EXENAME)
 
-test:	test.c
+test:	test.c svitava.c
 	gcc -fprofile-arcs -ftest-coverage -DNO_MAIN test.c -o test
 
 coverage.html:	test.gcda
