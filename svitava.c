@@ -96,7 +96,7 @@ enum error {
     NULL_IMAGE_POINTER,
     NULL_PIXELS_POINTER,
     INVALID_IMAGE_DIMENSION,
-    INVALID_IMAGE_TYPE,
+    INVALID_IMAGE_TYPE
 };
 
 /**
@@ -530,9 +530,10 @@ void image_line_aa(image_t *image, int x1, int y1, int x2, int y2, unsigned char
     /* p: sub-pixel step scaled to [0, 256) range for intensity calculation */
     p = s * 256.0;
     for (i = imin; i <= imax; i++) {
-        int c1 = (int)e;
+        int c1, c2;
+        c1 = (int)e;
         if (c1 > 255) c1 = 255;
-        int c2 = 255 - c1;
+        c2 = 255 - c1;
         image_putpixel_max(image, x + xp, y + yp, (r * c1) / 255, (g * c1) / 255, (b * c1) / 255, a);
         image_putpixel_max(image, x, y, (r * c2) / 255, (g * c2) / 255, (b * c2) / 255, a);
         e = e + p;
