@@ -1,22 +1,25 @@
 CC=gcc
-CFLAGS=-Wall -ansi -pedantic -Isrc
-LFLAGS=-lm -lpng
+CFLAGS=-Wall -ansi -pedantic
+#LFLAGS=-lm -lpng
+LFLAGS=-lm
 
-SRCDIR=src
-OBJDIR=obj
 EXENAME=svitava
+TESTNAME=test
 
 all:	$(EXENAME)
 
 clean:
-	rm -f $(OBJDIR)/*.o
 	rm -f $(EXENAME)
+	rm -f test
 
 run:	$(EXENAME)
 	./$(EXENAME)
 
-test:	test.c svitava.c
-	gcc -fprofile-arcs -ftest-coverage -DNO_MAIN test.c -o test
+$(EXENAME):	svitava.c
+	$(CC) $(CFLAGS) -o $@ $^ $(LFLAGS)
+
+$(TESTNAME):	test.c svitava.c
+	$(CC) -fprofile-arcs -ftest-coverage -DNO_MAIN test.c -o $(TESTNAME)
 
 coverage.html:	test.gcda
 	gcovr --html-details coverage.html -e test.c
@@ -29,27 +32,3 @@ coverage.info:
 
 index.html:	coverage.info
 	genhtml coverage.info --output-directory .
-
-OBJFILES=$(OBJDIR)/main.o $(OBJDIR)/pixmap.o $(OBJDIR)/bmp_writer.o $(OBJDIR)/ppm_writer.o $(OBJDIR)/png_writer.o $(OBJDIR)/mandelbrot.o
-
-
-$(EXENAME):	$(OBJFILES)
-	$(CC) -o $@ $^ $(LFLAGS)
-
-$(OBJDIR)/main.o:	$(SRCDIR)/main.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
-$(OBJDIR)/pixmap.o:	$(SRCDIR)/pixmap.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
-$(OBJDIR)/bmp_writer.o:	$(SRCDIR)/exporters/bmp_writer.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
-$(OBJDIR)/ppm_writer.o:	$(SRCDIR)/exporters/ppm_writer.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
-$(OBJDIR)/png_writer.o:	$(SRCDIR)/exporters/png_writer.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
-$(OBJDIR)/mandelbrot.o:	$(SRCDIR)/renderers/mandelbrot.c
-	$(CC) $(CFLAGS) -c $< -o $@
