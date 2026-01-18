@@ -204,13 +204,18 @@ image_t image_clone(const image_t *image) {
  * @param image Image whose pixel buffer will be cleared; must have a valid
  *              pixel buffer.
  *
- * @returns none
+ * @returns error code when the input image is NULL or pixels are not allocated,
+ *          OK otherwise
  */
-void image_clear(image_t *image) {
-    if (image == NULL || image->pixels == NULL) {
-        return;
+int image_clear(image_t *image) {
+    if (image == NULL) {
+        return NULL_IMAGE_POINTER;
+    }
+    if (image->pixels == NULL) {
+        return NULL_PIXELS_POINTER;
     }
     memset(image->pixels, 0x00, image_size(image));
+    return OK;
 }
 
 /**
