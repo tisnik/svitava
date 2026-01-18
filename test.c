@@ -155,6 +155,48 @@ void test_image_clone_large_image(void) {
     TEST_END
 }
 
+void test_image_clear_null_image(void) {
+    TEST_BEGIN
+    int result = image_clear(NULL);
+    assert(result == NULL_IMAGE_POINTER);
+    TEST_END
+}
+
+void test_image_clear_image_without_pixels(void) {
+    TEST_BEGIN
+    image_t image;
+    int result;
+
+    image.width = 100;
+    image.height = 100;
+    image.bpp = 1;
+    image.pixels = NULL;
+
+    result = image_clear(&image);
+    assert(result==NULL_PIXELS_POINTER);
+    TEST_END
+}
+
+void test_image_clear_proper_image(void) {
+    TEST_BEGIN
+    image_t image;
+    int result;
+    int i;
+
+    image = image_create(100, 100, GRAYSCALE);
+    assert(image.pixels != NULL);
+
+    result = image_clear(&image);
+    assert(result==OK);
+
+    for (i=0; i<100*100; i++) {
+        assert(image.pixels[i] == 0);
+    }
+
+    free(image.pixels);
+    TEST_END
+}
+
 int main(void) {
     test_image_size_null_image();
     test_image_create_zero_width();
@@ -169,6 +211,9 @@ int main(void) {
     test_image_clone_image_without_pixels();
     test_image_clone_proper_image();
     test_image_clone_large_image();
+    test_image_clear_null_image();
+    test_image_clear_image_without_pixels();
+    test_image_clear_proper_image();
     return 0;
 }
 
