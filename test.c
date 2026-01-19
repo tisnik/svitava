@@ -220,9 +220,9 @@ void test_image_putpixel_image_without_pixels(void) {
 }
 
 void test_image_putpixel_negative_coordinates(void) {
+    TEST_BEGIN
     image_t image;
     int result;
-    int i;
 
     image = image_create(100, 100, GRAYSCALE);
     assert(image.pixels != NULL);
@@ -234,12 +234,13 @@ void test_image_putpixel_negative_coordinates(void) {
     assert(result==INVALID_COORDINATES);
 
     free(image.pixels);
+    TEST_END
 }
 
-void test_image_putpixel_coordinates_outside_range() {
+void test_image_putpixel_coordinates_outside_range(void) {
+    TEST_BEGIN
     image_t image;
     int result;
-    int i;
 
     image = image_create(100, 100, GRAYSCALE);
     assert(image.pixels != NULL);
@@ -251,13 +252,14 @@ void test_image_putpixel_coordinates_outside_range() {
     assert(result==INVALID_COORDINATES);
 
     free(image.pixels);
+    TEST_END
 }
 
 void test_image_putpixel_rgb_image(void) {
+    TEST_BEGIN
     image_t image;
     unsigned char expected[3] = {1, 2, 3};
     int result;
-    int i;
 
     image = image_create(1, 1, RGB);
     assert(image.pixels != NULL);
@@ -267,13 +269,14 @@ void test_image_putpixel_rgb_image(void) {
     assert(memcmp((void*)expected, (void*)image.pixels, 3)==0);
 
     free(image.pixels);
+    TEST_END
 }
 
 void test_image_putpixel_rgba_image(void) {
+    TEST_BEGIN
     image_t image;
     unsigned char expected[4] = {1, 2, 3, 4};
     int result;
-    int i;
 
     image = image_create(1, 1, RGBA);
     assert(image.pixels != NULL);
@@ -283,12 +286,13 @@ void test_image_putpixel_rgba_image(void) {
     assert(memcmp((void*)expected, (void*)image.pixels, 4)==0);
 
     free(image.pixels);
+    TEST_END
 }
 
 void test_image_putpixel_grayscale_image(void) {
+    TEST_BEGIN
     image_t image;
     int result;
-    int i;
 
     image = image_create(1, 1, GRAYSCALE);
     assert(image.pixels != NULL);
@@ -302,6 +306,7 @@ void test_image_putpixel_grayscale_image(void) {
     assert(image.pixels[0]==18);
 
     free(image.pixels);
+    TEST_END
 }
 
 int main(void) {
