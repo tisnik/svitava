@@ -96,7 +96,8 @@ enum error {
     NULL_IMAGE_POINTER,
     NULL_PIXELS_POINTER,
     INVALID_IMAGE_DIMENSION,
-    INVALID_IMAGE_TYPE
+    INVALID_IMAGE_TYPE,
+    INVALID_COORDINATES,
 };
 
 /**
@@ -204,7 +205,8 @@ image_t image_clone(const image_t *image) {
  * @param image Image whose pixel buffer will be cleared; must have a valid
  *              pixel buffer.
  *
- * @returns error code when the input image is NULL or pixels are not allocated,
+ * @returns NULL_IMAGE_POINTER when the input image is NULL
+ *          NULL_PIXELS_POINTER when pixels are not allocated,
  *          OK otherwise
  */
 int image_clear(image_t *image) {
@@ -231,16 +233,22 @@ int image_clear(image_t *image) {
  * @param b Blue component (0–255).
  * @param a Alpha component (0–255).
  *
- * @returns none
+ * @returns NULL_IMAGE_POINTER when the input image is NULL
+ *          NULL_PIXELS_POINTER when pixels are not allocated,
+ *          INVALID_COORDINATES when pixel coordinate(s) are out of range
+ *          OK otherwise
  */
-void image_putpixel(image_t *image, int x, int y, unsigned char r,
+int image_putpixel(image_t *image, int x, int y, unsigned char r,
                     unsigned char g, unsigned char b, unsigned char a) {
     unsigned char *p;
-    if (image == NULL || image->pixels == NULL) {
-        return;
+    if (image == NULL) {
+        return NULL_IMAGE_POINTER;
+    }
+    if (image->pixels == NULL) {
+        return NULL_PIXELS_POINTER;
     }
     if (x < 0 || y < 0 || x >= (int)image->width || y >= (int)image->height) {
-        return;
+        return INVALID_COORDINATES;
     }
     p = image->pixels + (x + y * image->width) * image->bpp;
     if (image->bpp == GRAYSCALE) {
@@ -255,6 +263,7 @@ void image_putpixel(image_t *image, int x, int y, unsigned char r,
             *p = a;
         }
     }
+    return OK;
 }
 
 /**
