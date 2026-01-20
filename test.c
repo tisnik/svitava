@@ -309,6 +309,125 @@ void test_image_putpixel_grayscale_image(void) {
     TEST_END
 }
 
+void test_image_putpixel_max_null_image(void) {
+    TEST_BEGIN
+    int result = image_putpixel_max(NULL, 0, 0, 0, 0, 0, 0);
+    assert(result == NULL_IMAGE_POINTER);
+    TEST_END
+}
+
+void test_image_putpixel_max_image_without_pixels(void) {
+    TEST_BEGIN
+    image_t image;
+    int result;
+
+    image.width = 100;
+    image.height = 100;
+    image.bpp = 1;
+    image.pixels = NULL;
+
+    result = image_putpixel_max(&image, 0, 0, 0, 0, 0, 0);
+    assert(result==NULL_PIXELS_POINTER);
+    TEST_END
+}
+
+void test_image_putpixel_max_negative_coordinates(void) {
+    TEST_BEGIN
+    image_t image;
+    int result;
+
+    image = image_create(100, 100, GRAYSCALE);
+    assert(image.pixels != NULL);
+
+    result = image_putpixel_max(&image, -1, 0, 0, 0, 0, 0);
+    assert(result==INVALID_COORDINATES);
+
+    result = image_putpixel_max(&image, 0, -1, 0, 0, 0, 0);
+    assert(result==INVALID_COORDINATES);
+
+    free(image.pixels);
+    TEST_END
+}
+
+void test_image_putpixel_max_coordinates_outside_range(void) {
+    TEST_BEGIN
+    image_t image;
+    int result;
+
+    image = image_create(100, 100, GRAYSCALE);
+    assert(image.pixels != NULL);
+
+    result = image_putpixel_max(&image, 100+1, 1, 0, 0, 0, 0);
+    assert(result==INVALID_COORDINATES);
+
+    result = image_putpixel_max(&image, 1, 100+1, 0, 0, 0, 0);
+    assert(result==INVALID_COORDINATES);
+
+    free(image.pixels);
+    TEST_END
+}
+
+void test_image_putpixel_max_rgb_image(void) {
+    TEST_BEGIN
+    image_t image;
+    unsigned char expected[3] = {1, 2, 3};
+    int result;
+
+    image = image_create(1, 1, RGB);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    result = image_putpixel_max(&image, 0, 0, 1, 2, 3, 4);
+    assert(result==OK);
+    assert(memcmp((void*)expected, (void*)image.pixels, 3)==0);
+
+    result = image_putpixel_max(&image, 0, 0, 0, 0, 0, 4);
+    assert(result==OK);
+    assert(memcmp((void*)expected, (void*)image.pixels, 3)==0);
+
+    free(image.pixels);
+    TEST_END
+}
+
+void test_image_putpixel_max_rgba_image(void) {
+    TEST_BEGIN
+    image_t image;
+    unsigned char expected[4] = {1, 2, 3, 4};
+    int result;
+
+    image = image_create(1, 1, RGBA);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    result = image_putpixel_max(&image, 0, 0, 1, 2, 3, 4);
+    assert(result==OK);
+    assert(memcmp((void*)expected, (void*)image.pixels, 4)==0);
+
+    free(image.pixels);
+    TEST_END
+}
+
+void test_image_putpixel_max_grayscale_image(void) {
+    TEST_BEGIN
+    image_t image;
+    int result;
+
+    image = image_create(1, 1, GRAYSCALE);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    result = image_putpixel_max(&image, 0, 0, 0, 0, 0, 40);
+    assert(result==OK);
+    assert(image.pixels[0]==0);
+
+    result = image_putpixel_max(&image, 0, 0, 10, 20, 30, 40);
+    assert(result==OK);
+    assert(image.pixels[0]==18);
+
+    free(image.pixels);
+    TEST_END
+}
+
 int main(void) {
     /* tests for function image_size() */
     test_image_size_null_image();
@@ -342,6 +461,15 @@ int main(void) {
     test_image_putpixel_rgb_image();
     test_image_putpixel_rgba_image();
     test_image_putpixel_grayscale_image();
+
+    /* tests for function image_putpixel_max */
+    test_image_putpixel_max_null_image();
+    test_image_putpixel_max_image_without_pixels();
+    test_image_putpixel_max_negative_coordinates();
+    test_image_putpixel_max_coordinates_outside_range();
+    test_image_putpixel_max_rgb_image();
+    test_image_putpixel_max_rgba_image();
+    test_image_putpixel_max_grayscale_image();
     return 0;
 }
 

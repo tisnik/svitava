@@ -281,15 +281,21 @@ int image_putpixel(image_t *image, int x, int y, unsigned char r,
  * @param b Blue component candidate; pixel's blue becomes `max(current, b)`.
  * @param a Alpha component to write (overwrites existing alpha).
  *
- * @returns none
+ * @returns NULL_IMAGE_POINTER when the input image is NULL
+ *          NULL_PIXELS_POINTER when pixels are not allocated,
+ *          INVALID_COORDINATES when pixel coordinate(s) are out of range
+ *          OK otherwise
  */
-void image_putpixel_max(image_t *image, int x, int y, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
+int image_putpixel_max(image_t *image, int x, int y, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
     unsigned char *p;
-    if (image == NULL || image->pixels == NULL) {
-        return;
+    if (image == NULL) {
+        return NULL_IMAGE_POINTER;
+    }
+    if (image->pixels == NULL) {
+        return NULL_PIXELS_POINTER;
     }
     if (x < 0 || y < 0 || x >= (int)image->width || y >= (int)image->height) {
-        return;
+        return INVALID_COORDINATES;
     }
     p = image->pixels + (x + y * image->width) * image->bpp;
     if (image->bpp == GRAYSCALE) {
@@ -299,7 +305,7 @@ void image_putpixel_max(image_t *image, int x, int y, unsigned char r, unsigned 
         if (*p < gray) {
             *p = gray;
         }
-        return;
+        return OK;
     }
     /* image type is RGB or RGBA */
     if (*p < r) {
@@ -317,6 +323,7 @@ void image_putpixel_max(image_t *image, int x, int y, unsigned char r, unsigned 
         p++;
         *p = a;
     }
+    return OK;
 }
 
 /**
