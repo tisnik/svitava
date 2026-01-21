@@ -11,6 +11,9 @@ all:	$(EXENAME)
 clean:
 	rm -f $(EXENAME)
 	rm -f test
+	rm -f *.gcno
+	rm -f *.gcda
+	rm -f coverage.*
 
 run:	$(EXENAME)
 	./$(EXENAME)
