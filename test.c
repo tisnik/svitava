@@ -428,6 +428,169 @@ void test_image_putpixel_max_grayscale_image(void) {
     TEST_END
 }
 
+void test_image_getpixel_null_image(void) {
+    TEST_BEGIN
+    unsigned char r, g, b, a;
+    int result = image_getpixel(NULL, 0, 0, &r, &g, &b, &a);
+    assert(result == NULL_IMAGE_POINTER);
+    TEST_END
+}
+
+void test_image_getpixel_image_without_pixels() {
+    TEST_BEGIN
+    unsigned char r, g, b, a;
+    int result;
+    image_t image;
+
+    image.width = 100;
+    image.height = 100;
+    image.bpp = 1;
+    image.pixels = NULL;
+
+    result = image_getpixel(&image, 0, 0, &r, &g, &b, &a);
+    assert(result==NULL_PIXELS_POINTER);
+    TEST_END
+}
+
+void test_image_getpixel_negative_coordinates() {
+    TEST_BEGIN
+    unsigned char r, g, b, a;
+    int result;
+    image_t image;
+
+    image = image_create(100, 100, GRAYSCALE);
+    assert(image.pixels != NULL);
+
+    result = image_getpixel(&image, -1, 0, &r, &g, &b, &a);
+    assert(result==INVALID_COORDINATES);
+
+    result = image_getpixel(&image, 0, -1, &r, &g, &b, &a);
+    assert(result==INVALID_COORDINATES);
+
+    free(image.pixels);
+    TEST_END
+}
+
+void test_image_getpixel_coordinates_outside_range() {
+    TEST_BEGIN
+    unsigned char r, g, b, a;
+    int result;
+    image_t image;
+
+    image = image_create(100, 100, GRAYSCALE);
+    assert(image.pixels != NULL);
+
+    result = image_getpixel(&image, 100+1, 0, &r, &g, &b, &a);
+    assert(result==INVALID_COORDINATES);
+
+    result = image_getpixel(&image, 0, 100+1, &r, &g, &b, &a);
+    assert(result==INVALID_COORDINATES);
+
+    free(image.pixels);
+    TEST_END
+}
+
+void test_image_getpixel_null_color_component() {
+    TEST_BEGIN
+    unsigned char r, g, b, a;
+    int result;
+    image_t image;
+
+    image = image_create(100, 100, GRAYSCALE);
+    assert(image.pixels != NULL);
+
+    result = image_getpixel(&image, 0, 0, NULL, &g, &b, &a);
+    assert(result==NULL_COLOR_COMPONENT_POINTER);
+
+    result = image_getpixel(&image, 0, 0, &r, NULL, &b, &a);
+    assert(result==NULL_COLOR_COMPONENT_POINTER);
+
+    result = image_getpixel(&image, 0, 0, &r, &g, NULL, &a);
+    assert(result==NULL_COLOR_COMPONENT_POINTER);
+
+    result = image_getpixel(&image, 0, 0, &r, &g, &b, NULL);
+    assert(result==NULL_COLOR_COMPONENT_POINTER);
+
+    free(image.pixels);
+    TEST_END
+}
+
+void test_image_getpixel_rgb_image() {
+    TEST_BEGIN
+    unsigned char r, g, b, a;
+    int result;
+    image_t image;
+
+    image = image_create(100, 100, RGB);
+    assert(image.pixels != NULL);
+
+    result = image_getpixel(&image, 0, 0, &r, &g, &b, &a);
+    assert(result==OK);
+    assert(r==0);
+    assert(g==0);
+    assert(b==0);
+    assert(a==255);
+    image_putpixel(&image, 0, 0, 1, 2, 3, 4);
+    result = image_getpixel(&image, 0, 0, &r, &g, &b, &a);
+    assert(result==OK);
+    assert(r==1);
+    assert(g==2);
+    assert(b==3);
+    assert(a==255);
+
+    TEST_END
+}
+
+void test_image_getpixel_rgba_image() {
+    TEST_BEGIN
+    unsigned char r, g, b, a;
+    int result;
+    image_t image;
+
+    image = image_create(100, 100, RGBA);
+    assert(image.pixels != NULL);
+
+    result = image_getpixel(&image, 0, 0, &r, &g, &b, &a);
+    assert(result==OK);
+    assert(r==0);
+    assert(g==0);
+    assert(b==0);
+    assert(a==0);
+    image_putpixel(&image, 0, 0, 1, 2, 3, 4);
+    result = image_getpixel(&image, 0, 0, &r, &g, &b, &a);
+    assert(result==OK);
+    assert(r==1);
+    assert(g==2);
+    assert(b==3);
+    assert(a==4);
+    TEST_END
+}
+
+void test_image_getpixel_grayscale_image() {
+    TEST_BEGIN
+    unsigned char r, g, b, a;
+    int result;
+    image_t image;
+
+    image = image_create(100, 100, GRAYSCALE);
+    assert(image.pixels != NULL);
+
+    result = image_getpixel(&image, 0, 0, &r, &g, &b, &a);
+    assert(result==OK);
+    assert(r==0);
+    assert(g==0);
+    assert(b==0);
+    assert(a==255);
+    image_putpixel(&image, 0, 0, 1, 2, 3, 4);
+    result = image_getpixel(&image, 0, 0, &r, &g, &b, &a);
+    assert(result==OK);
+    assert(r==1);
+    assert(g==1);
+    assert(b==1);
+    assert(a==255);
+    TEST_END
+}
+
 int main(void) {
     /* tests for function image_size() */
     test_image_size_null_image();
@@ -470,6 +633,16 @@ int main(void) {
     test_image_putpixel_max_rgb_image();
     test_image_putpixel_max_rgba_image();
     test_image_putpixel_max_grayscale_image();
+
+    /* tests for function image_getpixel */
+    test_image_getpixel_null_image();
+    test_image_getpixel_image_without_pixels();
+    test_image_getpixel_negative_coordinates();
+    test_image_getpixel_coordinates_outside_range();
+    test_image_getpixel_null_color_component();
+    test_image_getpixel_rgb_image();
+    test_image_getpixel_rgba_image();
+    test_image_getpixel_grayscale_image();
     return 0;
 }
 
