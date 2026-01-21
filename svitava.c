@@ -95,6 +95,7 @@ enum error {
     NULL_POINTER,
     NULL_IMAGE_POINTER,
     NULL_PIXELS_POINTER,
+    NULL_COLOR_COMPONENT_POINTER,
     INVALID_IMAGE_DIMENSION,
     INVALID_IMAGE_TYPE,
     INVALID_COORDINATES,
@@ -340,14 +341,26 @@ int image_putpixel_max(image_t *image, int x, int y, unsigned char r, unsigned c
  * @param g Pointer to receive the green component (0–255).
  * @param b Pointer to receive the blue component (0–255).
  * @param a Pointer to receive the alpha component (0–255).
+ *
+ * @returns NULL_IMAGE_POINTER when the input image is NULL
+ *          NULL_PIXELS_POINTER when pixels are not allocated,
+ *          NULL_COLOR_COMPONENT_POINTER when pointer to color component is NULL,
+ *          INVALID_COORDINATES when pixel coordinate(s) are out of range
+ *          OK otherwise
  */
-void image_getpixel(const image_t *image, int x, int y, unsigned char *r, unsigned char *g, unsigned char *b, unsigned char *a) {
+int image_getpixel(const image_t *image, int x, int y, unsigned char *r, unsigned char *g, unsigned char *b, unsigned char *a) {
     const unsigned char *p;
-    if (image == NULL || image->pixels == NULL || r == NULL || g == NULL || b == NULL || a == NULL) {
-        return;
+    if (image == NULL) {
+        return NULL_IMAGE_POINTER;
+    }
+    if (image->pixels == NULL) {
+        return NULL_PIXELS_POINTER;
     }
     if (x < 0 || y < 0 || x >= (int)image->width || y >= (int)image->height) {
-        return;
+        return INVALID_COORDINATES;
+    }
+    if (r == NULL || g == NULL || b == NULL || a == NULL) {
+        return NULL_COLOR_COMPONENT_POINTER;
     }
     p = image->pixels + (x + y * image->width) * image->bpp;
 
@@ -355,7 +368,7 @@ void image_getpixel(const image_t *image, int x, int y, unsigned char *r, unsign
         /* for grayscale, replicate the single value to all RGB channels */
         *r = *g = *b = *p;
         *a = 255; /* grayscale images are always opaque */
-        return;
+        return OK;
     }
 
     *r = *p++;
@@ -366,6 +379,7 @@ void image_getpixel(const image_t *image, int x, int y, unsigned char *r, unsign
     } else {
         *a = 255; /* default opaque for non-RGBA images */
     }
+    return OK;
 }
 
 /**
