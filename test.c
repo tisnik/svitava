@@ -537,6 +537,7 @@ void test_image_getpixel_rgb_image() {
     assert(g==2);
     assert(b==3);
     assert(a==255);
+    free(image.pixels);
 
     TEST_END
 }
@@ -563,6 +564,7 @@ void test_image_getpixel_rgba_image() {
     assert(g==2);
     assert(b==3);
     assert(a==4);
+    free(image.pixels);
     TEST_END
 }
 
@@ -588,6 +590,7 @@ void test_image_getpixel_grayscale_image() {
     assert(g==1);
     assert(b==1);
     assert(a==255);
+    free(image.pixels);
     TEST_END
 }
 
