@@ -597,6 +597,197 @@ void test_image_getpixel_grayscale_image() {
     TEST_END
 }
 
+void test_image_hline_null_image(void) {
+    TEST_BEGIN
+    int result = image_hline(NULL, 0, 0, 0, 0, 0, 0, 0);
+    assert(result == NULL_IMAGE_POINTER);
+    TEST_END
+}
+
+void test_image_hline_image_without_pixels(void) {
+    TEST_BEGIN
+    image_t image;
+    int result;
+
+    image.width = 100;
+    image.height = 100;
+    image.bpp = 1;
+    image.pixels = NULL;
+
+    result = image_hline(&image, 0, 0, 0, 0, 0, 0, 0);
+    assert(result==NULL_PIXELS_POINTER);
+    TEST_END
+}
+
+void test_image_hline_negative_coordinates(void) {
+    TEST_BEGIN
+    image_t image;
+    int result;
+
+    image = image_create(100, 100, GRAYSCALE);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    /* x1 is negative */
+    result = image_hline(&image, -1, 0, 0, 0, 0, 0, 0);
+    assert(result==INVALID_COORDINATES);
+
+    /* x2 is negative */
+    result = image_hline(&image, 0, -1, 0, 0, 0, 0, 0);
+    assert(result==INVALID_COORDINATES);
+
+    /* x1 and x2 are negative */
+    result = image_hline(&image, -1, -1, 0, 0, 0, 0, 0);
+    assert(result==INVALID_COORDINATES);
+
+    /* y is negative */
+    result = image_hline(&image, 0, 0, -1, 0, 0, 0, 0);
+    assert(result==INVALID_COORDINATES);
+
+    /* all coordinates are negative */
+    result = image_hline(&image, -1, -1, -1, 0, 0, 0, 0);
+    assert(result==INVALID_COORDINATES);
+
+    free(image.pixels);
+    TEST_END
+}
+
+void test_image_hline_coordinates_outside_range(void) {
+    TEST_BEGIN
+    image_t image;
+    int result;
+
+    image = image_create(100, 100, GRAYSCALE);
+    assert(image.pixels != NULL);
+
+    /* x1 is too large */
+    result = image_hline(&image, 100+1, 1, 0, 0, 0, 0, 0);
+    assert(result==INVALID_COORDINATES);
+
+    /* x2 is too large */
+    result = image_hline(&image, 0, 100+1, 0, 0, 0, 0, 0);
+    assert(result==INVALID_COORDINATES);
+
+    /* x1 and x2 are too large */
+    result = image_hline(&image, 100+1, 100+1, 0, 0, 0, 0, 0);
+    assert(result==INVALID_COORDINATES);
+
+    /* y is too large */
+    result = image_hline(&image, 1, 2, 100+1, 0, 0, 0, 0);
+    assert(result==INVALID_COORDINATES);
+
+    free(image.pixels);
+    TEST_END
+}
+
+void test_image_hline_rgb_image_1x1(void) {
+    TEST_BEGIN
+    image_t image;
+    unsigned char expected[3] = {100, 150, 200};
+    int result;
+
+    image = image_create(1, 1, RGB);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    result = image_hline(&image, 0, 0, 0, 100, 150, 200, 250);
+    assert(result==OK);
+    assert(memcmp((void*)expected, (void*)image.pixels, 3)==0);
+
+    free(image.pixels);
+    TEST_END
+}
+
+void test_image_hline_rgb_image_2x2(void) {
+    TEST_BEGIN
+    image_t image;
+    unsigned char expected[12] = {100, 150, 200, 100, 150, 200, 0, 0, 0, 0, 0, 0};
+    int result;
+
+    image = image_create(2, 2, RGB);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    result = image_hline(&image, 0, 1, 0, 100, 150, 200, 250);
+    assert(result==OK);
+    assert(memcmp((void*)expected, (void*)image.pixels, 12)==0);
+
+    free(image.pixels);
+    TEST_END
+}
+
+void test_image_hline_rgba_image_1x1(void) {
+    TEST_BEGIN
+    image_t image;
+    unsigned char expected[4] = {100, 150, 200, 250};
+    int result;
+
+    image = image_create(1, 1, RGBA);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    result = image_hline(&image, 0, 0, 0, 100, 150, 200, 250);
+    assert(result==OK);
+    assert(memcmp((void*)expected, (void*)image.pixels, 4)==0);
+
+    free(image.pixels);
+    TEST_END
+}
+
+void test_image_hline_rgba_image_2x2(void) {
+    TEST_BEGIN
+    image_t image;
+    unsigned char expected[16] = {100, 150, 200, 250, 100, 150, 200, 250, 0, 0, 0, 0, 0, 0, 0, 0};
+    int result;
+
+    image = image_create(2, 2, RGBA);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    result = image_hline(&image, 0, 1, 0, 100, 150, 200, 250);
+    assert(result==OK);
+    assert(memcmp((void*)expected, (void*)image.pixels, 16)==0);
+
+    free(image.pixels);
+    TEST_END
+}
+
+void test_image_hline_grayscale_image_1x1(void) {
+    TEST_BEGIN
+    image_t image;
+    unsigned char expected[1] = {1};
+    int result;
+
+    image = image_create(1, 1, GRAYSCALE);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    result = image_hline(&image, 0, 0, 0, 1, 2, 3, 4);
+    assert(result==OK);
+    assert(memcmp((void*)expected, (void*)image.pixels, 1)==0);
+
+    free(image.pixels);
+    TEST_END
+}
+
+void test_image_hline_grayscale_image_2x2(void) {
+    TEST_BEGIN
+    image_t image;
+    unsigned char expected[4] = {1, 1, 0, 0};
+    int result;
+
+    image = image_create(2, 2, GRAYSCALE);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    result = image_hline(&image, 0, 1, 0, 1, 2, 3, 4);
+    assert(result==OK);
+    assert(memcmp((void*)expected, (void*)image.pixels, 4)==0);
+
+    free(image.pixels);
+    TEST_END
+}
+
 int main(void) {
     /* tests for function image_size() */
     test_image_size_null_image();
@@ -649,6 +840,19 @@ int main(void) {
     test_image_getpixel_rgb_image();
     test_image_getpixel_rgba_image();
     test_image_getpixel_grayscale_image();
+
+    /* tests for function image_hline */
+    test_image_hline_null_image();
+    test_image_hline_image_without_pixels();
+    test_image_hline_negative_coordinates();
+    test_image_hline_coordinates_outside_range();
+    test_image_hline_rgb_image_1x1();
+    test_image_hline_rgb_image_2x2();
+    test_image_hline_rgba_image_1x1();
+    test_image_hline_rgba_image_2x2();
+    test_image_hline_grayscale_image_1x1();
+    test_image_hline_grayscale_image_2x2();
+
     return 0;
 }
 
