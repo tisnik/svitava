@@ -399,7 +399,6 @@ int image_getpixel(const image_t *image, int x, int y, unsigned char *r, unsigne
  *
  * @returns NULL_IMAGE_POINTER when the input image is NULL
  *          NULL_PIXELS_POINTER when pixels are not allocated,
- *          NULL_COLOR_COMPONENT_POINTER when pointer to color component is NULL,
  *          INVALID_COORDINATES when pixel coordinate(s) are out of range
  *          OK otherwise
  */
