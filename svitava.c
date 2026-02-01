@@ -397,13 +397,32 @@ int image_getpixel(const image_t *image, int x, int y, unsigned char *r, unsigne
  * @param b Blue component (0–255).
  * @param a Alpha component (0–255).
  *
- * @returns none
+ * @returns NULL_IMAGE_POINTER when the input image is NULL
+ *          NULL_PIXELS_POINTER when pixels are not allocated,
+ *          NULL_COLOR_COMPONENT_POINTER when pointer to color component is NULL,
+ *          INVALID_COORDINATES when pixel coordinate(s) are out of range
+ *          OK otherwise
  */
-void image_hline(image_t *image, int x1, int x2, int y, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
+int image_hline(image_t *image, int x1, int x2, int y, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
     int x, fromX = MIN(x1, x2), toX = MAX(x1, x2);
-    for (x = fromX; x <= toX; x++) {
-        image_putpixel(image, x, y, r, g, b, a);
+    if (image == NULL) {
+        return NULL_IMAGE_POINTER;
     }
+    if (image->pixels == NULL) {
+        return NULL_PIXELS_POINTER;
+    }
+    if (fromX < 0 || y < 0 || toX >= (int)image->width || y >= (int)image->height) {
+        return INVALID_COORDINATES;
+    }
+    for (x = fromX; x <= toX; x++) {
+        /* all checks are performed internally */
+        /* TODO: fast putpixel function w/o any checks */
+        int result = image_putpixel(image, x, y, r, g, b, a);
+        if (result != OK) {
+            return result;
+        }
+    }
+    return OK;
 }
 
 /**
