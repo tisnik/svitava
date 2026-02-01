@@ -523,6 +523,7 @@ void test_image_getpixel_rgb_image() {
 
     image = image_create(100, 100, RGB);
     assert(image.pixels != NULL);
+    image_clear(&image);
 
     result = image_getpixel(&image, 0, 0, &r, &g, &b, &a);
     assert(result==OK);
@@ -550,6 +551,7 @@ void test_image_getpixel_rgba_image() {
 
     image = image_create(100, 100, RGBA);
     assert(image.pixels != NULL);
+    image_clear(&image);
 
     result = image_getpixel(&image, 0, 0, &r, &g, &b, &a);
     assert(result==OK);
@@ -576,6 +578,7 @@ void test_image_getpixel_grayscale_image() {
 
     image = image_create(100, 100, GRAYSCALE);
     assert(image.pixels != NULL);
+    image_clear(&image);
 
     result = image_getpixel(&image, 0, 0, &r, &g, &b, &a);
     assert(result==OK);
