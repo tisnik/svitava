@@ -9,14 +9,24 @@
 #define TEST_END \
     }
 
+/**
+ * Checks that image_size returns 0 when given a NULL image.
+ *
+ * Asserts that calling image_size(NULL) produces a size of 0.
+ */
 void test_image_size_null_image(void) {
     TEST_BEGIN
     size_t size = image_size(NULL);
     assert(size == 0);
     TEST_END
-
 }
 
+/**
+ * Verify that creating an image with a width of zero produces an empty image.
+ *
+ * Asserts that the created image has width == 0, height == 0, bpp == 0, and
+ * pixels == NULL.
+ */
 void test_image_create_zero_width(void) {
     TEST_BEGIN
     image_t image = image_create(0, 100, 4);
@@ -27,6 +37,10 @@ void test_image_create_zero_width(void) {
     TEST_END
 }
 
+/**
+ * Verify that creating an image with width greater than MAX_WIDTH yields a
+ * zeroed image and no pixel buffer.
+ */
 void test_image_create_too_wide(void) {
     TEST_BEGIN
     image_t image = image_create(MAX_WIDTH+1, 100, 4);
@@ -37,6 +51,13 @@ void test_image_create_too_wide(void) {
     TEST_END
 }
 
+/**
+ * Verify that creating an image with height set to zero produces an empty
+ * image.
+ *
+ * Asserts that the returned image has width == 0, height == 0, bpp == 0,
+ * and pixels == NULL.
+ */
 void test_image_create_zero_height(void) {
     TEST_BEGIN
     image_t image = image_create(100, 0, 4);
@@ -47,6 +68,10 @@ void test_image_create_zero_height(void) {
     TEST_END
 }
 
+/**
+ * Verify that creating an image with height greater than MAX_HEIGHT yields a
+ * zeroed image and no pixel buffer.
+ */
 void test_image_create_too_high(void) {
     TEST_BEGIN
     image_t image = image_create(100, MAX_HEIGHT+1, 4);
@@ -57,6 +82,13 @@ void test_image_create_too_high(void) {
     TEST_END
 }
 
+/**
+ * Verify that calling image_create with an invalid image type produces a
+ * zeroed image.
+ *
+ * Calls image_create(100, 100, 0) and asserts that the resulting image has width == 0,
+ * height == 0, bpp == 0, and pixels == NULL.
+ */
 void test_image_create_wrong_image_type(void) {
     TEST_BEGIN
     image_t image = image_create(100, 100, 0);
@@ -67,6 +99,13 @@ void test_image_create_wrong_image_type(void) {
     TEST_END
 }
 
+/**
+ * Tests that creating a 100x100 grayscale image allocates a non-NULL pixel
+ * buffer.
+ *
+ * Asserts the pixel buffer returned by image_create(100, 100, GRAYSCALE) is
+ * not NULL and frees it.
+ */
 void test_image_create_grayscale(void) {
     TEST_BEGIN
     image_t image = image_create(100, 100, GRAYSCALE);
@@ -75,6 +114,12 @@ void test_image_create_grayscale(void) {
     TEST_END
 }
 
+/**
+ * Tests that creating a 100x100 RGB image allocates a non-NULL pixel buffer.
+ *
+ * Asserts the pixel buffer returned by image_create(100, 100, RGB) is not NULL
+ * and frees it.
+ */
 void test_image_create_rgb(void) {
     TEST_BEGIN
     image_t image = image_create(100, 100, RGB);
@@ -83,6 +128,12 @@ void test_image_create_rgb(void) {
     TEST_END
 }
 
+/**
+ * Tests that creating a 100x100 RGBA image allocates a non-NULL pixel buffer.
+ *
+ * Asserts the pixel buffer returned by image_create(100, 100, RGBA) is not
+ * NULL and frees it.
+ */
 void test_image_create_rgba(void) {
     TEST_BEGIN
     image_t image = image_create(100, 100, RGBA);
