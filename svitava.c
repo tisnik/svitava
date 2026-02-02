@@ -427,6 +427,9 @@ int image_hline(image_t *image, int x1, int x2, int y, unsigned char r, unsigned
 /**
  * Draws a vertical line at column x between y1 and y2 inclusive using the specified RGBA color.
  *
+ * The line includes both endpoints; the order of `y1` and `y2` does not matter. Pixels that lie
+ * outside the image bounds are ignored.
+ *
  * @param image Target image.
  * @param x X coordinate (column) where the line is drawn.
  * @param y1 One end Y coordinate of the line.
@@ -436,13 +439,31 @@ int image_hline(image_t *image, int x1, int x2, int y, unsigned char r, unsigned
  * @param b Blue component (0-255).
  * @param a Alpha component (0-255).
  *
- * @returns none
+ * @returns NULL_IMAGE_POINTER when the input image is NULL
+ *          NULL_PIXELS_POINTER when pixels are not allocated,
+ *          INVALID_COORDINATES when pixel coordinate(s) are out of range
+ *          OK otherwise
  */
-void image_vline(image_t *image, int x, int y1, int y2, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
+int image_vline(image_t *image, int x, int y1, int y2, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
     int y, fromY = MIN(y1, y2), toY = MAX(y1, y2);
-    for (y = fromY; y <= toY; y++) {
-        image_putpixel(image, x, y, r, g, b, a);
+    if (image == NULL) {
+        return NULL_IMAGE_POINTER;
     }
+    if (image->pixels == NULL) {
+        return NULL_PIXELS_POINTER;
+    }
+    if (fromY < 0 || x < 0 || toY >= (int)image->height || x >= (int)image->width) {
+        return INVALID_COORDINATES;
+    }
+    for (y = fromY; y <= toY; y++) {
+        /* all checks are performed internally */
+        /* TODO: fast putpixel function w/o any checks */
+        int result = image_putpixel(image, x, y, r, g, b, a);
+        if (result != OK) {
+            return result;
+        }
+    }
+    return OK;
 }
 
 /**
