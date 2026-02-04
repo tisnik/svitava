@@ -142,6 +142,9 @@ void test_image_create_rgba(void) {
     TEST_END
 }
 
+/**
+ * Verify that cloning a NULL image returns a non NULL image with zero size.
+ */
 void test_image_clone_null_image(void) {
     TEST_BEGIN
     image_t cloned = image_clone(NULL);
@@ -152,6 +155,13 @@ void test_image_clone_null_image(void) {
     TEST_END
 }
 
+/**
+ * Verify that cloning an image struct with no pixel buffer yields a zeroed
+ * image.
+ *
+ * Asserts that the resulting cloned image has width == 0, height == 0, bpp == 0,
+ * and pixels == NULL.
+ */
 void test_image_clone_image_without_pixels(void) {
     TEST_BEGIN
     image_t image, cloned;
@@ -187,6 +197,13 @@ void test_image_clone_proper_image(void) {
     TEST_END
 }
 
+/**
+ * Verify that cloning an image with width and height greater than the allowed
+ * maxima produces a zeroed image.
+ *
+ * Creates an RGB image, inflates its width and height beyond MAX_WIDTH/MAX_HEIGHT, and asserts that
+ * image_clone returns an image with width 0, height 0, bpp 0, and NULL pixels.
+ */
 void test_image_clone_large_image(void) {
     TEST_BEGIN
     image_t image, cloned;
