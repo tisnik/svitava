@@ -482,17 +482,31 @@ int image_vline(image_t *image, int x, int y1, int y2, unsigned char r, unsigned
  * @param b Blue component of the color (0-255).
  * @param a Alpha component of the color (0-255).
  *
- * @returns none
+ * @returns NULL_IMAGE_POINTER when the input image is NULL
+ *          NULL_PIXELS_POINTER when pixels are not allocated,
+ *          INVALID_COORDINATES when pixel coordinate(s) are out of range
+ *          OK otherwise
  */
-void image_line(image_t *image, int x1, int y1, int x2, int y2, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
+int image_line(image_t *image, int x1, int y1, int x2, int y2, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
     int dx = abs(x2 - x1), sx = x1 < x2 ? 1 : -1;
     int dy = abs(y2 - y1), sy = y1 < y2 ? 1 : -1;
     int err = (dx > dy ? dx : -dy) / 2, e2;
 
+    if (image == NULL) {
+        return NULL_IMAGE_POINTER;
+    }
+    if (image->pixels == NULL) {
+        return NULL_PIXELS_POINTER;
+    }
+
     while (1) {
-        image_putpixel(image, x1, y1, r, g, b, a);
+        /* all checks are performed internally */
+        int result = image_putpixel(image, x1, y1, r, g, b, a);
+        if (result != OK) {
+            return result;
+        }
         if (x1 == x2 && y1 == y2) {
-            break;
+            return OK;
         }
         e2 = err;
         if (e2 > -dx) {
