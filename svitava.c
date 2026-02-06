@@ -1459,7 +1459,7 @@ void render_mandelbrot(const image_t *image, const unsigned char *palette,
                 zx = zx2 - zy2 + cx;
                 i++;
             }
-            putpixel(&p, palette, i);
+            putpixel(&p, palette, i % 256);
             cx += (xmax - xmin) / image->width;
         }
         cy += (ymax - ymin) / image->height;
