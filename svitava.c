@@ -59,6 +59,7 @@ Image import operations:
 Renderers implemented:
 ----------------------
 
+render_test_rgb_image
 
 */
 
@@ -78,6 +79,14 @@ Renderers implemented:
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
+
+#define NULL_CHECK(value)       \
+    if (value == NULL) {        \
+        puts("NULL parameter"); \
+        return;                 \
+    }
+
+/* ABI type definitions */
 
 /**
  * Structure that represents raster image of configurable resolution and bits
@@ -1412,6 +1421,48 @@ void render_test_palette_image(const image_t *image, const unsigned char *palett
             int color = i / div_x;
             putpixel(&p, palette, color);
         }
+    }
+}
+
+/**
+ * Renders the Mandelbrot set fractal into a pixel buffer using a specified
+ * color palette.
+ *
+ * Iterates over each pixel, maps it to a point in the complex plane, and
+ * computes the escape time for the Mandelbrot set. The iteration count
+ * determines the color index used from the palette.
+ */
+void render_mandelbrot(const image_t *image, const unsigned char *palette,
+                       double zx0, double zy0, int maxiter) {
+    int            x, y;
+    double         cx, cy;
+    double         xmin = -2.0, ymin = -1.5, xmax = 1.0, ymax = 1.5;
+    unsigned char *p = image->pixels;
+
+    NULL_CHECK(palette)
+    NULL_CHECK(image->pixels)
+
+    cy = ymin;
+    for (y = 0; y < image->height; y++) {
+        cx = xmin;
+        for (x = 0; x < image->width; x++) {
+            double       zx = zx0;
+            double       zy = zy0;
+            unsigned int i = 0;
+            while (i < maxiter) {
+                double zx2 = zx * zx;
+                double zy2 = zy * zy;
+                if (zx2 + zy2 > 4.0) {
+                    break;
+                }
+                zy = 2.0 * zx * zy + cy;
+                zx = zx2 - zy2 + cx;
+                i++;
+            }
+            putpixel(&p, palette, i);
+            cx += (xmax - xmin) / image->width;
+        }
+        cy += (ymax - ymin) / image->height;
     }
 }
 
