@@ -1437,10 +1437,20 @@ void render_mandelbrot(const image_t *image, const unsigned char *palette,
     int            x, y;
     double         cx, cy;
     double         xmin = -2.0, ymin = -1.5, xmax = 1.0, ymax = 1.5;
-    unsigned char *p = image->pixels;
+    double         step_x;
+    double         step_y;
+    unsigned char *p;
 
     NULL_CHECK(palette)
     NULL_CHECK(image->pixels)
+
+    if (image->width == 0 || image->height == 0) {
+        return;
+    }
+
+    p = image->pixels;
+    step_x = (xmax - xmin) / image->width;
+    step_y = (ymax - ymin) / image->height;
 
     cy = ymin;
     for (y = 0; y < image->height; y++) {
@@ -1468,7 +1478,21 @@ void render_mandelbrot(const image_t *image, const unsigned char *palette,
 
 #ifndef NO_MAIN
 int main(int argc, char **argv) {
+#define WIDTH 512
+#define HEIGHT 512
+    unsigned char *palette = (unsigned char *)malloc(256 * 3);
+    image_t image = image_create(WIDTH, HEIGHT, RGBA);
+    int i;
 
+    for (i=0; i<255; i++) {
+        palette[i*3] = i*2;
+        palette[i*3+1] = i*3;
+        palette[i*3+2] = i*5;
+    }
+
+    image_clear(&image);
+    render_mandelbrot(&image, palette, 0.0, 0.0, 255);
+    image_export_bmp(WIDTH, HEIGHT, image.pixels, "test.bmp");
     return 0;
 }
 #endif
