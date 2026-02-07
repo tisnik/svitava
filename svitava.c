@@ -105,6 +105,7 @@ enum error {
     NULL_IMAGE_POINTER,
     NULL_PIXELS_POINTER,
     NULL_COLOR_COMPONENT_POINTER,
+    NULL_PALETTE_POINTER,
     INVALID_IMAGE_DIMENSION,
     INVALID_IMAGE_TYPE,
     INVALID_COORDINATES,
@@ -547,30 +548,40 @@ int image_line(image_t *image, int x1, int y1, int x2, int y2, unsigned char r, 
  * @param b Blue component (0–255) of the line color.
  * @param a Alpha component (0–255) of the line color.
  *
- * @returns none
+ * @returns NULL_IMAGE_POINTER when the input image is NULL
+ *          NULL_PIXELS_POINTER when pixels are not allocated,
+ *          INVALID_COORDINATES when pixel coordinate(s) are out of range
+ *          INVALID_IMAGE_TYPE for images that are not of type RGBA
+ *          OK otherwise
  */
-void image_line_aa(image_t *image, int x1, int y1, int x2, int y2, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
+int image_line_aa(image_t *image, int x1, int y1, int x2, int y2, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
     int    dx = x2 - x1;
     int    dy = y2 - y1;
     double s, p, e = 0.0;
     int    x, y, xdelta, ydelta, xpdelta, ypdelta, xp, yp;
     int    i, imin, imax;
 
+    if (image == NULL) {
+        return NULL_IMAGE_POINTER;
+    }
+    if (image->pixels == NULL) {
+        return NULL_PIXELS_POINTER;
+    }
     /* anti-aliasing requires RGBA for proper blending */
-    if (image == NULL || image->pixels == NULL || image->bpp != RGBA) {
-        return;
+    if (image->bpp != RGBA) {
+        return INVALID_IMAGE_TYPE;
     }
 
     /* strict vertical line does not have to be anti-aliased */
     if (x1 == x2) {
         image_vline(image, x1, y1, y2, r, g, b, a);
-        return;
+        return OK;
     }
 
     /* strict horizontal line does not have to be anti-aliased */
     if (y1 == y2) {
         image_hline(image, x1, x2, y1, r, g, b, a);
-        return;
+        return OK;
     }
 
     if (x1 > x2) {
@@ -642,6 +653,7 @@ void image_line_aa(image_t *image, int x1, int y1, int x2, int y2, unsigned char
             y += ypdelta;
         }
     }
+    return OK;
 }
 
 /**
