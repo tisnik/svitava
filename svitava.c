@@ -574,14 +574,12 @@ int image_line_aa(image_t *image, int x1, int y1, int x2, int y2, unsigned char 
 
     /* strict vertical line does not have to be anti-aliased */
     if (x1 == x2) {
-        image_vline(image, x1, y1, y2, r, g, b, a);
-        return OK;
+        return image_vline(image, x1, y1, y2, r, g, b, a);
     }
 
     /* strict horizontal line does not have to be anti-aliased */
     if (y1 == y2) {
-        image_hline(image, x1, x2, y1, r, g, b, a);
-        return OK;
+        return image_hline(image, x1, x2, y1, r, g, b, a);
     }
 
     if (x1 > x2) {
