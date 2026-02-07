@@ -265,6 +265,9 @@ void test_image_clear_proper_image(void) {
     TEST_END
 }
 
+/**
+ * Verify image_putpixel returns NULL_IMAGE_POINTER when called with a NULL image pointer.
+ */
 void test_image_putpixel_null_image(void) {
     TEST_BEGIN
     int result = image_putpixel(NULL, 0, 0, 0, 0, 0, 0);
@@ -272,6 +275,10 @@ void test_image_putpixel_null_image(void) {
     TEST_END
 }
 
+/**
+ * Verify image_putpixel reports a NULL_PIXELS_POINTER error when the image's
+ * pixels pointer is NULL.
+ */
 void test_image_putpixel_image_without_pixels(void) {
     TEST_BEGIN
     image_t image;
@@ -287,6 +294,12 @@ void test_image_putpixel_image_without_pixels(void) {
     TEST_END
 }
 
+/**
+ * Verify that image_putpixel rejects negative coordinates.
+ *
+ * Creates a 100x100 grayscale image and asserts that calling image_putpixel
+ * with a negative x or y coordinate returns INVALID_COORDINATES.
+ */
 void test_image_putpixel_negative_coordinates(void) {
     TEST_BEGIN
     image_t image;
@@ -305,6 +318,12 @@ void test_image_putpixel_negative_coordinates(void) {
     TEST_END
 }
 
+/**
+ * Verify that image_putpixel rejects coordinates outside the image bounds.
+ *
+ * Creates a 100x100 grayscale image and asserts that calls to image_putpixel
+ * with x > 99 or y > 99 return INVALID_COORDINATES.
+ */
 void test_image_putpixel_coordinates_outside_range(void) {
     TEST_BEGIN
     image_t image;
@@ -323,6 +342,12 @@ void test_image_putpixel_coordinates_outside_range(void) {
     TEST_END
 }
 
+/**
+ * Test that image_putpixel writes exactly three RGB components into a 1x1 RGB image.
+ *
+ * Creates a 1x1 RGB image, sets the pixel with values (1, 2, 3, 4), and asserts that
+ * the image's pixel buffer contains the three RGB components {1, 2, 3}; frees pixels.
+ */
 void test_image_putpixel_rgb_image(void) {
     TEST_BEGIN
     image_t       image;
@@ -340,6 +365,12 @@ void test_image_putpixel_rgb_image(void) {
     TEST_END
 }
 
+/**
+ * Test that image_putpixel writes exactly four RGBA components into a 1x1 RGBA image.
+ *
+ * Creates a 1x1 RGBA image, sets the pixel with values (1, 2, 3, 4), and asserts that
+ * the image's pixel buffer contains the four RGBA components {1, 2, 3, 4}; frees pixels.
+ */
 void test_image_putpixel_rgba_image(void) {
     TEST_BEGIN
     image_t       image;
@@ -357,6 +388,13 @@ void test_image_putpixel_rgba_image(void) {
     TEST_END
 }
 
+/**
+ * Test that image_putpixel writes exactly one grayscale component into a 1x1 grayscale image.
+ *
+ * Creates a 1x1 grayscale image, sets the pixel with values (0, 0, 0, 40), and asserts that
+ * the image's pixel buffer contains the one grayscale component. Repeats these steps with
+ * different pixel color.
+ */
 void test_image_putpixel_grayscale_image(void) {
     TEST_BEGIN
     image_t image;
@@ -377,6 +415,9 @@ void test_image_putpixel_grayscale_image(void) {
     TEST_END
 }
 
+/**
+ * Verifies that image_putpixel_max reports a NULL_IMAGE_POINTER error when given a NULL image pointer.
+ */
 void test_image_putpixel_max_null_image(void) {
     TEST_BEGIN
     int result = image_putpixel_max(NULL, 0, 0, 0, 0, 0, 0);
