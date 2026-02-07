@@ -1372,21 +1372,34 @@ void putpixel(unsigned char **pixel, const unsigned char *palette,
  *
  * The pixel buffer is assumed to use 4 bytes per pixel, with the fourth byte
  * unused or as padding.
+ *
  * @param green Value to assign to the green channel for all pixels.
+ *
+ * @returns NULL_IMAGE_POINTER when the input image is NULL
+ *          NULL_PIXELS_POINTER when pixels are not allocated,
+ *          NULL_PALETTE_POINTER when the palette is NULL
+ *          INVALID_IMAGE_TYPE for images that are not of type RGBA
+ *          OK otherwise
  */
-void render_test_rgb_image(const image_t *image, const unsigned char *palette,
+int render_test_rgb_image(const image_t *image, const unsigned char *palette,
                            unsigned char green) {
     unsigned int   i, j;
     unsigned char *p;
     unsigned int   div_x, div_y;
 
-    if (image == NULL || image->pixels == NULL) {
-        return;
+    if (image == NULL) {
+        return NULL_IMAGE_POINTER;
+    }
+    if (image->pixels == NULL) {
+        return NULL_PIXELS_POINTER;
+    }
+    if (palette == NULL) {
+        return NULL_PALETTE_POINTER;
     }
 
-    /* avoid division by zero */
+    /* avoid empty images */
     if (image->width == 0 || image->height == 0) {
-        return;
+        return INVALID_IMAGE_DIMENSION;
     }
 
     p = image->pixels;
@@ -1402,6 +1415,7 @@ void render_test_rgb_image(const image_t *image, const unsigned char *palette,
             p++;
         }
     }
+    return OK;
 }
 
 /**
