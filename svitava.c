@@ -1424,19 +1424,31 @@ int render_test_rgb_image(const image_t *image, const unsigned char *palette,
  *
  * Each pixel in the image is assigned a color from the palette based on its
  * horizontal position, creating vertical color bands.
+ *
+ * @returns NULL_IMAGE_POINTER when the input image is NULL
+ *          NULL_PIXELS_POINTER when pixels are not allocated,
+ *          NULL_PALETTE_POINTER when the palette is NULL
+ *          INVALID_IMAGE_TYPE for images that are not of type RGBA
+ *          OK otherwise
  */
-void render_test_palette_image(const image_t *image, const unsigned char *palette) {
+int render_test_palette_image(const image_t *image, const unsigned char *palette) {
     unsigned int   i, j;
     unsigned char *p;
     unsigned int   div_x;
 
-    if (image == NULL || image->pixels == NULL) {
-        return;
+    if (image == NULL) {
+        return NULL_IMAGE_POINTER;
+    }
+    if (image->pixels == NULL) {
+        return NULL_PIXELS_POINTER;
+    }
+    if (palette == NULL) {
+        return NULL_PALETTE_POINTER;
     }
 
-    /* avoid division by zero */
+    /* avoid empty images */
     if (image->width == 0 || image->height == 0) {
-        return;
+        return INVALID_IMAGE_DIMENSION;
     }
 
     p = image->pixels;
@@ -1448,6 +1460,7 @@ void render_test_palette_image(const image_t *image, const unsigned char *palett
             putpixel(&p, palette, color);
         }
     }
+    return OK;
 }
 
 /**
