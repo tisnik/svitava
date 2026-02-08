@@ -1,3 +1,7 @@
+/*
+ * Unit tests for functions defined in svitava.c
+ */
+
 #include <assert.h>
 
 #include "svitava.c"
@@ -179,6 +183,9 @@ void test_image_clone_image_without_pixels(void) {
     TEST_END
 }
 
+/**
+ * Verify that cloning a correct image will succeed.
+ */
 void test_image_clone_proper_image(void) {
     TEST_BEGIN
     image_t image, cloned;
@@ -201,8 +208,9 @@ void test_image_clone_proper_image(void) {
  * Verify that cloning an image with width and height greater than the allowed
  * maxima produces a zeroed image.
  *
- * Creates an RGB image, inflates its width and height beyond MAX_WIDTH/MAX_HEIGHT, and asserts that
- * image_clone returns an image with width 0, height 0, bpp 0, and NULL pixels.
+ * Creates an RGB image, inflates its width and height beyond
+ * MAX_WIDTH/MAX_HEIGHT, and asserts that image_clone returns an image with
+ * width 0, height 0, bpp 0, and NULL pixels.
  */
 void test_image_clone_large_image(void) {
     TEST_BEGIN
@@ -223,6 +231,10 @@ void test_image_clone_large_image(void) {
     TEST_END
 }
 
+/**
+ * Verify that trying to clear NULL image will return NULL_IMAGE_POINTER
+ * and no memory will be accessed.
+ */
 void test_image_clear_null_image(void) {
     TEST_BEGIN
     int result = image_clear(NULL);
@@ -230,6 +242,10 @@ void test_image_clear_null_image(void) {
     TEST_END
 }
 
+/**
+ * Verify that trying to clear image without pixels allocated will return
+ * NULL_PIXELS_POINTER and no memory will be accessed.
+ */
 void test_image_clear_image_without_pixels(void) {
     TEST_BEGIN
     image_t image;
@@ -245,6 +261,9 @@ void test_image_clear_image_without_pixels(void) {
     TEST_END
 }
 
+/**
+ * Verify clearing proper image with pixels allocated.
+ */
 void test_image_clear_proper_image(void) {
     TEST_BEGIN
     image_t image;
@@ -266,7 +285,8 @@ void test_image_clear_proper_image(void) {
 }
 
 /**
- * Verify image_putpixel returns NULL_IMAGE_POINTER when called with a NULL image pointer.
+ * Verify image_putpixel returns NULL_IMAGE_POINTER when called with a NULL
+ * image pointer.
  */
 void test_image_putpixel_null_image(void) {
     TEST_BEGIN
@@ -343,10 +363,12 @@ void test_image_putpixel_coordinates_outside_range(void) {
 }
 
 /**
- * Test that image_putpixel writes exactly three RGB components into a 1x1 RGB image.
+ * Test that image_putpixel writes exactly three RGB components into a 1x1 RGB
+ * image.
  *
- * Creates a 1x1 RGB image, sets the pixel with values (1, 2, 3, 4), and asserts that
- * the image's pixel buffer contains the three RGB components {1, 2, 3}; frees pixels.
+ * Creates a 1x1 RGB image, sets the pixel with values (1, 2, 3, 4), and
+ * asserts that the image's pixel buffer contains the three RGB components {1,
+ * 2, 3}; frees pixels.
  */
 void test_image_putpixel_rgb_image(void) {
     TEST_BEGIN
@@ -366,10 +388,12 @@ void test_image_putpixel_rgb_image(void) {
 }
 
 /**
- * Test that image_putpixel writes exactly four RGBA components into a 1x1 RGBA image.
+ * Test that image_putpixel writes exactly four RGBA components into a 1x1 RGBA
+ * image.
  *
- * Creates a 1x1 RGBA image, sets the pixel with values (1, 2, 3, 4), and asserts that
- * the image's pixel buffer contains the four RGBA components {1, 2, 3, 4}; frees pixels.
+ * Creates a 1x1 RGBA image, sets the pixel with values (1, 2, 3, 4), and
+ * asserts that the image's pixel buffer contains the four RGBA components {1,
+ * 2, 3, 4}; frees pixels.
  */
 void test_image_putpixel_rgba_image(void) {
     TEST_BEGIN
@@ -389,11 +413,12 @@ void test_image_putpixel_rgba_image(void) {
 }
 
 /**
- * Test that image_putpixel writes exactly one grayscale component into a 1x1 grayscale image.
+ * Test that image_putpixel writes exactly one grayscale component into a 1x1
+ * grayscale image.
  *
- * Creates a 1x1 grayscale image, sets the pixel with values (0, 0, 0, 40), and asserts that
- * the image's pixel buffer contains the one grayscale component. Repeats these steps with
- * different pixel color.
+ * Creates a 1x1 grayscale image, sets the pixel with values (0, 0, 0, 40), and
+ * asserts that the image's pixel buffer contains the one grayscale component.
+ * Repeats these steps with different pixel color.
  */
 void test_image_putpixel_grayscale_image(void) {
     TEST_BEGIN
@@ -416,7 +441,8 @@ void test_image_putpixel_grayscale_image(void) {
 }
 
 /**
- * Verifies that image_putpixel_max reports a NULL_IMAGE_POINTER error when given a NULL image pointer.
+ * Verifies that image_putpixel_max reports a NULL_IMAGE_POINTER error when
+ * given a NULL image pointer.
  */
 void test_image_putpixel_max_null_image(void) {
     TEST_BEGIN
@@ -425,6 +451,10 @@ void test_image_putpixel_max_null_image(void) {
     TEST_END
 }
 
+/**
+ * Verifies that image_putpixel_max reports a NULL_PIXELS_POINTER error when
+ * given an image without pixels allocated.
+ */
 void test_image_putpixel_max_image_without_pixels(void) {
     TEST_BEGIN
     image_t image;
@@ -440,6 +470,13 @@ void test_image_putpixel_max_image_without_pixels(void) {
     TEST_END
 }
 
+/**
+ * Verify that image_putpixel_max rejects negative coordinates.
+ *
+ * Creates a 100x100 grayscale image and asserts that calling
+ * image_putpixel_max with a negative x or y coordinate returns
+ * INVALID_COORDINATES.
+ */
 void test_image_putpixel_max_negative_coordinates(void) {
     TEST_BEGIN
     image_t image;
@@ -458,6 +495,12 @@ void test_image_putpixel_max_negative_coordinates(void) {
     TEST_END
 }
 
+/**
+ * Verify that image_putpixel_max rejects coordinates outside the image bounds.
+ *
+ * Creates a 100x100 grayscale image and asserts that calls to image_putpixel_max
+ * with x > 99 or y > 99 return INVALID_COORDINATES.
+ */
 void test_image_putpixel_max_coordinates_outside_range(void) {
     TEST_BEGIN
     image_t image;
@@ -516,6 +559,13 @@ void test_image_putpixel_max_rgba_image(void) {
     TEST_END
 }
 
+/**
+ * Verify image_putpixel_max writes correct grayscale values for GRAYSCALE images.
+ *
+ * Creates a 1x1 grayscale image, clears it, calls image_putpixel_max with
+ * different component values and verifies the stored grayscale byte matches
+ * the expected results (first call leaves 0, second call produces value 18).
+ */
 void test_image_putpixel_max_grayscale_image(void) {
     TEST_BEGIN
     image_t image;
@@ -580,6 +630,12 @@ void test_image_getpixel_negative_coordinates() {
     TEST_END
 }
 
+/**
+ * Verify image_getpixel reports invalid coordinates for positions outside image bounds.
+ *
+ * Creates a 100×100 grayscale image and asserts that requesting a pixel at x == 101 or y == 101
+ * returns INVALID_COORDINATES.
+ */
 void test_image_getpixel_coordinates_outside_range() {
     TEST_BEGIN
     unsigned char r, g, b, a;
@@ -599,6 +655,12 @@ void test_image_getpixel_coordinates_outside_range() {
     TEST_END
 }
 
+/**
+ * Verifies image_getpixel returns NULL_COLOR_COMPONENT_POINTER when any color component pointer is NULL.
+ *
+ * The test invokes image_getpixel on a valid image while passing NULL for each of the color component output
+ * pointers (r, g, b, a) in turn and asserts the function returns the NULL_COLOR_COMPONENT_POINTER error code.
+ */
 void test_image_getpixel_null_color_component() {
     TEST_BEGIN
     unsigned char r, g, b, a;
@@ -973,6 +1035,16 @@ void test_image_hline_grayscale_image_2x2(void) {
     TEST_END
 }
 
+/**
+ * Run the complete image processing test suite in a deterministic order.
+ *
+ * Executes all unit tests covering image size, creation, cloning, clearing,
+ * pixel writing (putpixel and putpixel_max), pixel reading (getpixel), and
+ * horizontal line drawing (hline). Tests are invoked in grouped sections to
+ * ensure predictable setup and teardown across cases.
+ *
+ * @return 0 on success.
+ */
 int main(void) {
     /* tests for function image_size() */
     test_image_size_null_image();
