@@ -652,6 +652,13 @@ void test_image_getpixel_rgb_image() {
     TEST_END
 }
 
+/**
+ * Test retrieval of RGBA pixel components.
+ *
+ * Creates a 100×100 RGBA image, verifies that a cleared pixel returns 0,0,0,0,
+ * writes a pixel with components (1,2,3,4), verifies those components are read back,
+ * and releases the image pixel buffer.
+ */
 void test_image_getpixel_rgba_image() {
     TEST_BEGIN
     unsigned char r, g, b, a;
@@ -706,6 +713,11 @@ void test_image_getpixel_grayscale_image() {
     TEST_END
 }
 
+/**
+ * Verify that drawing a horizontal line on a NULL image reports a NULL image pointer error.
+ *
+ * Asserts that calling image_hline with a NULL image pointer returns NULL_IMAGE_POINTER.
+ */
 void test_image_hline_null_image(void) {
     TEST_BEGIN
     int result = image_hline(NULL, 0, 0, 0, 0, 0, 0, 0);
@@ -713,6 +725,12 @@ void test_image_hline_null_image(void) {
     TEST_END
 }
 
+/**
+ * Verifies that drawing a horizontal line on an image with no pixel buffer reports a NULL pixels error.
+ *
+ * Creates an image struct with valid dimensions and bpp but NULL `pixels`, calls `image_hline`, and
+ * asserts that the function returns `NULL_PIXELS_POINTER`.
+ */
 void test_image_hline_image_without_pixels(void) {
     TEST_BEGIN
     image_t image;
@@ -728,6 +746,12 @@ void test_image_hline_image_without_pixels(void) {
     TEST_END
 }
 
+/**
+ * Verify image_hline reports INVALID_COORDINATES when any coordinate is negative.
+ *
+ * Creates a 100x100 grayscale image, clears it, and asserts that image_hline
+ * rejects negative x1, x2, and/or y values across several combinations.
+ */
 void test_image_hline_negative_coordinates(void) {
     TEST_BEGIN
     image_t image;
@@ -761,6 +785,19 @@ void test_image_hline_negative_coordinates(void) {
     TEST_END
 }
 
+/**
+ * Verifies that image_hline rejects coordinates outside the image bounds.
+ *
+ * Creates a 100×100 grayscale image and asserts that image_hline returns
+ * INVALID_COORDINATES when:
+ *  - x1 is greater than the image width - 1,
+ *  - x2 is greater than the image width - 1,
+ *  - both x1 and x2 are greater than the image width - 1,
+ *  - y is greater than the image height - 1.
+ *
+ * The test allocates and frees the image pixel buffer and uses assertions to
+ * validate expected return codes.
+ */
 void test_image_hline_coordinates_outside_range(void) {
     TEST_BEGIN
     image_t image;
@@ -789,6 +826,12 @@ void test_image_hline_coordinates_outside_range(void) {
     TEST_END
 }
 
+/**
+ * Test drawing a horizontal line on a 1x1 RGB image.
+ *
+ * Verifies that calling image_hline on a 1x1 RGB image writes the provided RGB components
+ * into the single pixel and returns OK; frees the image pixels after the check.
+ */
 void test_image_hline_rgb_image_1x1(void) {
     TEST_BEGIN
     image_t       image;
@@ -807,6 +850,14 @@ void test_image_hline_rgb_image_1x1(void) {
     TEST_END
 }
 
+/**
+ * Test drawing a horizontal RGB line across the first row of a 2x2 image.
+ *
+ * Creates a 2x2 RGB image, clears it, draws a horizontal line from x=0 to x=1 at y=0
+ * with color components R=100, G=150, B=200 (alpha provided but ignored for RGB),
+ * and verifies the pixel buffer layout: the first two pixels contain the RGB values
+ * and the remaining pixels remain zeroed.
+ */
 void test_image_hline_rgb_image_2x2(void) {
     TEST_BEGIN
     image_t       image;
@@ -825,6 +876,12 @@ void test_image_hline_rgb_image_2x2(void) {
     TEST_END
 }
 
+/**
+ * Test that drawing a horizontal line on a 1x1 RGBA image writes the provided RGBA values to the single pixel.
+ *
+ * Creates a 1x1 RGBA image, clears it, draws a horizontal line covering the single pixel with RGBA(100,150,200,250),
+ * and asserts the operation returns OK and the image pixel buffer matches the expected bytes.
+ */
 void test_image_hline_rgba_image_1x1(void) {
     TEST_BEGIN
     image_t       image;
@@ -843,6 +900,13 @@ void test_image_hline_rgba_image_1x1(void) {
     TEST_END
 }
 
+/**
+ * Test drawing a horizontal RGBA line across the first row of a 2x2 image.
+ *
+ * Creates a 2x2 RGBA image, clears it, draws a horizontal line from x=0 to x=1 at y=0
+ * with color components R=100, G=150, B=200, A=250, and verifies the pixel buffer layout:
+ * the first two pixels contain the RGBA values and the remaining pixels remain zeroed.
+ */
 void test_image_hline_rgba_image_2x2(void) {
     TEST_BEGIN
     image_t       image;
@@ -861,6 +925,12 @@ void test_image_hline_rgba_image_2x2(void) {
     TEST_END
 }
 
+/**
+ * Verifies that drawing a horizontal line on a 1x1 grayscale image writes the expected single pixel value.
+ *
+ * Creates a 1x1 grayscale image, clears it, draws a horizontal line at y=0 from x=0 to x=0 with provided color components,
+ * and asserts that the image's single pixel matches the expected grayscale value.
+ */
 void test_image_hline_grayscale_image_1x1(void) {
     TEST_BEGIN
     image_t       image;
@@ -879,6 +949,12 @@ void test_image_hline_grayscale_image_1x1(void) {
     TEST_END
 }
 
+/**
+ * Verifies that drawing a horizontal line on a 2x2 grayscale image writes the expected pixel values.
+ *
+ * Creates a 2x2 grayscale image, clears it, draws a horizontal span across the first row, and asserts
+ * that the pixels in the affected span are set to the expected grayscale values while other pixels remain unchanged.
+ */
 void test_image_hline_grayscale_image_2x2(void) {
     TEST_BEGIN
     image_t       image;
