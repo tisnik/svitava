@@ -900,6 +900,13 @@ void test_image_hline_rgba_image_1x1(void) {
     TEST_END
 }
 
+/**
+ * Test drawing a horizontal RGBA line across the first row of a 2x2 image.
+ *
+ * Creates a 2x2 RGBA image, clears it, draws a horizontal line from x=0 to x=1 at y=0
+ * with color components R=100, G=150, B=200, A=250, and verifies the pixel buffer layout:
+ * the first two pixels contain the RGBA values and the remaining pixels remain zeroed.
+ */
 void test_image_hline_rgba_image_2x2(void) {
     TEST_BEGIN
     image_t       image;
