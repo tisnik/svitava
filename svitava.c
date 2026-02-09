@@ -1468,8 +1468,15 @@ int render_test_palette_image(const image_t *image, const unsigned char *palette
  * Iterates over each pixel, maps it to a point in the complex plane, and
  * computes the escape time for the Mandelbrot set. The iteration count
  * determines the color index used from the palette.
+ *
+ * @returns NULL_IMAGE_POINTER when the input image is NULL
+ *          NULL_PIXELS_POINTER when pixels are not allocated,
+ *          NULL_PALETTE_POINTER when the palette is NULL
+ *          INVALID_IMAGE_TYPE for images that are not of type RGBA
+ *          INVALID_IMAGE_DIMENSION if image has zero width/height
+ *          OK otherwise
  */
-void render_mandelbrot(const image_t *image, const unsigned char *palette,
+int render_mandelbrot(const image_t *image, const unsigned char *palette,
                        double zx0, double zy0, int maxiter) {
     int            x, y;
     double         cx, cy;
@@ -1478,11 +1485,24 @@ void render_mandelbrot(const image_t *image, const unsigned char *palette,
     double         step_y;
     unsigned char *p;
 
-    NULL_CHECK(palette)
-    NULL_CHECK(image->pixels)
+    if (image == NULL) {
+        return NULL_IMAGE_POINTER;
+    }
+    if (image->pixels == NULL) {
+        return NULL_PIXELS_POINTER;
+    }
+    if (palette == NULL) {
+        return NULL_PALETTE_POINTER;
+    }
 
+    /* putpixel() writes 4 bytes per pixel, so only RGBA images are supported */
+    if (image->bpp != RGBA) {
+        return INVALID_IMAGE_TYPE;
+    }
+
+    /* avoid division by zero */
     if (image->width == 0 || image->height == 0) {
-        return;
+        return INVALID_IMAGE_DIMENSION;
     }
 
     p = image->pixels;
@@ -1507,10 +1527,11 @@ void render_mandelbrot(const image_t *image, const unsigned char *palette,
                 i++;
             }
             putpixel(&p, palette, i % 256);
-            cx += (xmax - xmin) / image->width;
+            cx += step_x;
         }
-        cy += (ymax - ymin) / image->height;
+        cy += step_y;
     }
+    return OK;
 }
 
 #ifndef NO_MAIN
@@ -1521,7 +1542,7 @@ int main(int argc, char **argv) {
     image_t image = image_create(WIDTH, HEIGHT, RGBA);
     int i;
 
-    for (i=0; i<255; i++) {
+    for (i=0; i<=255; i++) {
         palette[i*3] = i*2;
         palette[i*3+1] = i*3;
         palette[i*3+2] = i*5;
