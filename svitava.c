@@ -1473,6 +1473,7 @@ int render_test_palette_image(const image_t *image, const unsigned char *palette
  *          NULL_PIXELS_POINTER when pixels are not allocated,
  *          NULL_PALETTE_POINTER when the palette is NULL
  *          INVALID_IMAGE_TYPE for images that are not of type RGBA
+ *          INVALID_IMAGE_DIMENSION if image has zero width/height
  *          OK otherwise
  */
 int render_mandelbrot(const image_t *image, const unsigned char *palette,
@@ -1492,6 +1493,11 @@ int render_mandelbrot(const image_t *image, const unsigned char *palette,
     }
     if (palette == NULL) {
         return NULL_PALETTE_POINTER;
+    }
+
+    /* putpixel() writes 4 bytes per pixel, so only RGBA images are supported */
+    if (image->bpp != RGBA) {
+        return INVALID_IMAGE_TYPE;
     }
 
     /* avoid division by zero */
