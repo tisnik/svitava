@@ -250,7 +250,7 @@ int image_clear(image_t *image) {
  *          OK otherwise
  */
 int image_putpixel(image_t *image, int x, int y, unsigned char r,
-                    unsigned char g, unsigned char b, unsigned char a) {
+                   unsigned char g, unsigned char b, unsigned char a) {
     unsigned char *p;
     if (image == NULL) {
         return NULL_IMAGE_POINTER;
@@ -593,7 +593,7 @@ int image_line_aa(image_t *image, int x1, int y1, int x2, int y2, unsigned char 
 
     /* iterate along the dominant (longer) axis */
     if (abs(dx) > abs(dy)) {
-        s = (double)dy / (double)dx;  /* slope: rise over run */
+        s = (double)dy / (double)dx; /* slope: rise over run */
         imin = x1;
         imax = x2;
         x = x1;
@@ -611,7 +611,7 @@ int image_line_aa(image_t *image, int x1, int y1, int x2, int y2, unsigned char 
             yp = -1;
         }
     } else {
-        s = (double)dx / (double)dy;  /* slope: run over rise */
+        s = (double)dx / (double)dy; /* slope: run over rise */
         xdelta = 0;
         ydelta = 1;
         ypdelta = 0;
@@ -638,7 +638,9 @@ int image_line_aa(image_t *image, int x1, int y1, int x2, int y2, unsigned char 
     for (i = imin; i <= imax; i++) {
         int c1, c2;
         c1 = (int)e;
-        if (c1 > 255) c1 = 255;
+        if (c1 > 255) {
+            c1 = 255;
+        }
         c2 = 255 - c1;
         image_putpixel_max(image, x + xp, y + yp, (r * c1) / 255, (g * c1) / 255, (b * c1) / 255, a);
         image_putpixel_max(image, x, y, (r * c2) / 255, (g * c2) / 255, (b * c2) / 255, a);
@@ -670,9 +672,9 @@ int image_line_aa(image_t *image, int x1, int y1, int x2, int y2, unsigned char 
  * @param divisor Value used to normalize the accumulated channel sums; must be non-zero.
  */
 void apply_kernel(image_t *image, int size, int kernel[size][size], int divisor) {
-    int x, y;
+    int     x, y;
     image_t tmp;
-    int limit = size/2;
+    int     limit = size / 2;
 
     if (image == NULL || image->pixels == NULL) {
         return;
@@ -687,22 +689,22 @@ void apply_kernel(image_t *image, int size, int kernel[size][size], int divisor)
         return; /* allocation failed */
     }
 
-    for (y=limit; y<(int)tmp.height-limit; y++) {
-        for (x=limit; x<(int)tmp.width-limit; x++) {
-            int r=0, g=0, b=0;
+    for (y = limit; y < (int)tmp.height - limit; y++) {
+        for (x = limit; x < (int)tmp.width - limit; x++) {
+            int r = 0, g = 0, b = 0;
             int dx, dy;
-            for (dy=-limit; dy<=limit; dy++) {
-                for (dx=-limit; dx<=limit; dx++) {
+            for (dy = -limit; dy <= limit; dy++) {
+                for (dx = -limit; dx <= limit; dx++) {
                     unsigned char rr, gg, bb, aa;
-                    image_getpixel(image, x+dx, y+dy, &rr, &gg, &bb, &aa);
-                    r+=rr*kernel[dy+limit][dx+limit];
-                    g+=gg*kernel[dy+limit][dx+limit];
-                    b+=bb*kernel[dy+limit][dx+limit];
+                    image_getpixel(image, x + dx, y + dy, &rr, &gg, &bb, &aa);
+                    r += rr * kernel[dy + limit][dx + limit];
+                    g += gg * kernel[dy + limit][dx + limit];
+                    b += bb * kernel[dy + limit][dx + limit];
                 }
             }
-            r/=divisor;
-            g/=divisor;
-            b/=divisor;
+            r /= divisor;
+            g /= divisor;
+            b /= divisor;
             /* clamp to valid unsigned char range */
             r = (r < 0) ? 0 : (r > 255 ? 255 : r);
             g = (g < 0) ? 0 : (g > 255 ? 255 : g);
@@ -727,9 +729,9 @@ void apply_kernel(image_t *image, int size, int kernel[size][size], int divisor)
  */
 void filter_smooth_3x3_block(image_t *image) {
     static int kernel[3][3] = {
-        {1,1,1},
-        {1,1,1},
-        {1,1,1},
+        {1, 1, 1},
+        {1, 1, 1},
+        {1, 1, 1},
     };
 
     apply_kernel(image, 3, kernel, 9);
@@ -748,9 +750,9 @@ void filter_smooth_3x3_block(image_t *image) {
  */
 void filter_smooth_3x3_gauss(image_t *image) {
     static int kernel[3][3] = {
-        {1,2,1},
-        {2,4,2},
-        {1,2,1},
+        {1, 2, 1},
+        {2, 4, 2},
+        {1, 2, 1},
     };
 
     apply_kernel(image, 3, kernel, 16);
@@ -768,9 +770,9 @@ void filter_smooth_3x3_gauss(image_t *image) {
  */
 void filter_sharpen_3x3(image_t *image) {
     static int kernel[3][3] = {
-        { 0,-1, 0},
-        {-1, 5,-1},
-        { 0,-1, 0},
+        {0, -1, 0},
+        {-1, 5, -1},
+        {0, -1, 0},
     };
 
     apply_kernel(image, 3, kernel, 1);
@@ -792,9 +794,9 @@ void filter_sharpen_3x3(image_t *image) {
  */
 void filter_edge_detection_3x3_1(image_t *image) {
     static int kernel[3][3] = {
-        { 0,-1, 0},
-        {-1, 4,-1},
-        { 0,-1, 0},
+        {0, -1, 0},
+        {-1, 4, -1},
+        {0, -1, 0},
     };
 
     apply_kernel(image, 3, kernel, 1);
@@ -815,9 +817,9 @@ void filter_edge_detection_3x3_1(image_t *image) {
  */
 void filter_edge_detection_3x3_2(image_t *image) {
     static int kernel[3][3] = {
-        {-1,-1,-1},
-        {-1, 8,-1},
-        {-1,-1,-1},
+        {-1, -1, -1},
+        {-1, 8, -1},
+        {-1, -1, -1},
     };
 
     apply_kernel(image, 3, kernel, 1);
@@ -839,9 +841,9 @@ void filter_edge_detection_3x3_2(image_t *image) {
  */
 void filter_edge_detection_3x3_3(image_t *image) {
     static int kernel[3][3] = {
-        { 0, 1, 0},
-        { 1,-4, 1},
-        { 0, 1, 0},
+        {0, 1, 0},
+        {1, -4, 1},
+        {0, 1, 0},
     };
 
     apply_kernel(image, 3, kernel, 1);
@@ -859,9 +861,9 @@ void filter_edge_detection_3x3_3(image_t *image) {
  */
 void filter_horizontal_edge_detection_3x3(image_t *image) {
     static int kernel[3][3] = {
-        {-1,-1,-1},
-        { 0, 0, 0},
-        { 1, 1, 1},
+        {-1, -1, -1},
+        {0, 0, 0},
+        {1, 1, 1},
     };
 
     apply_kernel(image, 3, kernel, 1);
@@ -922,9 +924,9 @@ void filter_horizontal_sobel_operator_3x3(image_t *image) {
  */
 void filter_vertical_sobel_operator_3x3(image_t *image) {
     static int kernel[3][3] = {
-        {-1,-2,-1},
-        { 0, 0, 0},
-        { 1, 2, 1},
+        {-1, -2, -1},
+        {0, 0, 0},
+        {1, 2, 1},
     };
 
     apply_kernel(image, 3, kernel, 1);
@@ -1126,7 +1128,7 @@ void ppm_write_binary_to_stream(unsigned int width, unsigned int height,
         /* TODO: fix bottom-to-up ordering */
         for (x = 0; x < width; x++) {
             memcpy(rgb, p, 3);
-            p+=4;
+            p += 4;
             fwrite(rgb, sizeof(rgb), 1, fout);
         }
     }
@@ -1143,7 +1145,7 @@ void ppm_write_binary_to_stream(unsigned int width, unsigned int height,
  * @return 0 on success, -1 on failure to open or close the file.
  */
 int image_export_ppm_ascii(unsigned int width, unsigned int height,
-                    unsigned char *pixels, const char *file_name) {
+                           unsigned char *pixels, const char *file_name) {
     FILE *fout;
 
     fout = fopen(file_name, "wb");
@@ -1170,7 +1172,7 @@ int image_export_ppm_ascii(unsigned int width, unsigned int height,
  * @return 0 on success, -1 on failure to open or close the file.
  */
 int image_export_ppm_binary(unsigned int width, unsigned int height,
-                    unsigned char *pixels, const char *file_name) {
+                            unsigned char *pixels, const char *file_name) {
     FILE *fout;
 
     fout = fopen(file_name, "wb");
@@ -1201,7 +1203,7 @@ int image_export_ppm_binary(unsigned int width, unsigned int height,
  * @return 0 on success, 1 on failure to open the file.
  */
 int image_export_bmp(unsigned int width, unsigned int height, unsigned char *pixels,
-              const char *file_name) {
+                     const char *file_name) {
     unsigned char bmp_header[] = {
         /* BMP header structure: */
         0x42, 0x4d,             /* magic number */
@@ -1225,7 +1227,7 @@ int image_export_bmp(unsigned int width, unsigned int height, unsigned char *pix
     int   x, y;
 
     /* BMP rows must be padded to 4-byte boundaries */
-    unsigned int row_padding = (4 - (width * 3) % 4) % 4;
+    unsigned int  row_padding = (4 - (width * 3) % 4) % 4;
     unsigned char pad[3] = {0, 0, 0};
 
     if (pixels == NULL || file_name == NULL) {
@@ -1296,7 +1298,7 @@ static const unsigned char true_color_tga_header[] = {
  * @returns 0 on success, 1 if `pixels` is NULL, -1 on file open/write/close failure.
  */
 int image_export_tga(unsigned int width, unsigned int height,
-              const unsigned char *pixels, const char *file_name) {
+                     const unsigned char *pixels, const char *file_name) {
     FILE                *fout;
     const unsigned char *p = pixels;
     unsigned char        header[sizeof true_color_tga_header];
@@ -1380,7 +1382,7 @@ void putpixel(unsigned char **pixel, const unsigned char *palette,
  *          OK otherwise
  */
 int render_test_rgb_image(const image_t *image, const unsigned char *palette,
-                           unsigned char green) {
+                          unsigned char green) {
     unsigned int   i, j;
     unsigned char *p;
     unsigned int   div_x, div_y;
@@ -1477,7 +1479,7 @@ int render_test_palette_image(const image_t *image, const unsigned char *palette
  *          OK otherwise
  */
 int render_mandelbrot(const image_t *image, const unsigned char *palette,
-                       double zx0, double zy0, int maxiter) {
+                      double zx0, double zy0, int maxiter) {
     int            x, y;
     double         cx, cy;
     double         xmin = -2.0, ymin = -1.5, xmax = 1.0, ymax = 1.5;
@@ -1539,13 +1541,13 @@ int main(int argc, char **argv) {
 #define WIDTH 512
 #define HEIGHT 512
     unsigned char *palette = (unsigned char *)malloc(256 * 3);
-    image_t image = image_create(WIDTH, HEIGHT, RGBA);
-    int i;
+    image_t        image = image_create(WIDTH, HEIGHT, RGBA);
+    int            i;
 
-    for (i=0; i<=255; i++) {
-        palette[i*3] = i*2;
-        palette[i*3+1] = i*3;
-        palette[i*3+2] = i*5;
+    for (i = 0; i <= 255; i++) {
+        palette[i * 3] = i * 2;
+        palette[i * 3 + 1] = i * 3;
+        palette[i * 3 + 2] = i * 5;
     }
 
     image_clear(&image);
@@ -1554,4 +1556,3 @@ int main(int argc, char **argv) {
     return 0;
 }
 #endif
-
