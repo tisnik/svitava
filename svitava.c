@@ -60,6 +60,9 @@ Renderers implemented:
 ----------------------
 
 render_test_rgb_image
+render_test_palette_image
+render_mandelbrot
+render_julia
 
 */
 
@@ -79,12 +82,6 @@ render_test_rgb_image
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
-
-#define NULL_CHECK(value)       \
-    if (value == NULL) {        \
-        puts("NULL parameter"); \
-        return;                 \
-    }
 
 /* ABI type definitions */
 
@@ -1532,6 +1529,78 @@ int render_mandelbrot(const image_t *image, const unsigned char *palette,
             cx += step_x;
         }
         cy += step_y;
+    }
+    return OK;
+}
+
+/**
+ * Renders a Julia set fractal image into the provided pixel buffer.
+ *
+ * Maps each pixel to a point in the complex plane and iterates the function z =
+ * z^2 + c, where c is specified by `cx` and `cy`. Colors are assigned based on
+ * the number of iterations before escape, using the provided palette.
+ *
+ * @returns NULL_IMAGE_POINTER when the input image is NULL
+ *          NULL_PIXELS_POINTER when pixels are not allocated,
+ *          NULL_PALETTE_POINTER when the palette is NULL
+ *          INVALID_IMAGE_TYPE for images that are not of type RGBA
+ *          INVALID_IMAGE_DIMENSION if image has zero width/height
+ *          OK otherwise
+ */
+int render_julia(const image_t *image, const unsigned char *palette,
+                  double cx, double cy, int maxiter) {
+    int            x, y;
+    double         zx0, zy0;
+    double         xmin = -1.5, ymin = -1.5, xmax = 1.5, ymax = 1.5;
+    double         step_x;
+    double         step_y;
+    unsigned char *p;
+
+    if (image == NULL) {
+        return NULL_IMAGE_POINTER;
+    }
+    if (image->pixels == NULL) {
+        return NULL_PIXELS_POINTER;
+    }
+    if (palette == NULL) {
+        return NULL_PALETTE_POINTER;
+    }
+
+    /* putpixel() writes 4 bytes per pixel, so only RGBA images are supported */
+    if (image->bpp != RGBA) {
+        return INVALID_IMAGE_TYPE;
+    }
+
+    /* avoid division by zero */
+    if (image->width == 0 || image->height == 0) {
+        return INVALID_IMAGE_DIMENSION;
+    }
+
+    p = image->pixels;
+    step_x = (xmax - xmin) / image->width;
+    step_y = (ymax - ymin) / image->height;
+
+    zy0 = ymin;
+    for (y = 0; y < image->height; y++) {
+        zx0 = xmin;
+        for (x = 0; x < image->width; x++) {
+            double       zx = zx0;
+            double       zy = zy0;
+            unsigned int i = 0;
+            while (i < maxiter) {
+                double zx2 = zx * zx;
+                double zy2 = zy * zy;
+                if (zx2 + zy2 > 4.0) {
+                    break;
+                }
+                zy = 2.0 * zx * zy + cy;
+                zx = zx2 - zy2 + cx;
+                i++;
+            }
+            putpixel(&p, palette, i % 256);
+            zx0 += step_x;
+        }
+        zy0 += step_y;
     }
     return OK;
 }
