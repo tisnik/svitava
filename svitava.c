@@ -1597,7 +1597,7 @@ int render_julia(const image_t *image, const unsigned char *palette,
                 zx = zx2 - zy2 + cx;
                 i++;
             }
-            putpixel(&p, palette, i);
+            putpixel(&p, palette, i % 256);
             zx0 += step_x;
         }
         zy0 += step_y;
