@@ -105,7 +105,7 @@ enum error {
     NULL_PALETTE_POINTER,
     INVALID_IMAGE_DIMENSION,
     INVALID_IMAGE_TYPE,
-    INVALID_COORDINATES,
+    INVALID_COORDINATES
 };
 
 /**
@@ -1621,7 +1621,11 @@ int main(int argc, char **argv) {
 
     image_clear(&image);
     render_mandelbrot(&image, palette, 0.0, 0.0, 255);
-    image_export_bmp(WIDTH, HEIGHT, image.pixels, "test.bmp");
+    image_export_bmp(WIDTH, HEIGHT, image.pixels, "mandelbrot.bmp");
+
+    image_clear(&image);
+    render_julia(&image, palette, -0.207190825000000012496, 0.676656624999999999983, 255);
+    image_export_bmp(WIDTH, HEIGHT, image.pixels, "julia.bmp");
     return 0;
 }
 #endif
