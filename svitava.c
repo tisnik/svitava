@@ -1391,20 +1391,10 @@ int render_test_rgb_image(const image_t *image, const unsigned char *palette,
     unsigned char *p;
     unsigned int   div_x, div_y;
 
-    if (image == NULL) {
-        return NULL_IMAGE_POINTER;
-    }
-    if (image->pixels == NULL) {
-        return NULL_PIXELS_POINTER;
-    }
-    if (palette == NULL) {
-        return NULL_PALETTE_POINTER;
-    }
-
-    /* avoid empty images */
-    if (image->width == 0 || image->height == 0) {
-        return INVALID_IMAGE_DIMENSION;
-    }
+    /* Only properly-created images are accepted */
+    ENSURE_PROPER_IMAGE_STRUCTURE
+    ENSURE_NON_EMPTY_IMAGE
+    ENSURE_PROPER_PALETTE
 
     p = image->pixels;
 
@@ -1440,15 +1430,10 @@ int render_test_palette_image(const image_t *image, const unsigned char *palette
     unsigned char *p;
     unsigned int   div_x;
 
-    if (image == NULL) {
-        return NULL_IMAGE_POINTER;
-    }
-    if (image->pixels == NULL) {
-        return NULL_PIXELS_POINTER;
-    }
-    if (palette == NULL) {
-        return NULL_PALETTE_POINTER;
-    }
+    /* Only properly-created images are accepted */
+    ENSURE_PROPER_IMAGE_STRUCTURE
+    ENSURE_NON_EMPTY_IMAGE
+    ENSURE_PROPER_PALETTE
 
     /* avoid empty images */
     if (image->width == 0 || image->height == 0) {
@@ -1607,12 +1592,21 @@ int main(int argc, char **argv) {
     }
 
     image_clear(&image);
+    render_test_rgb_image(&image, palette, 128);
+    image_export_bmp(WIDTH, HEIGHT, image.pixels, "test_rgb.bmp");
+
+    image_clear(&image);
+    render_test_palette_image(&image, palette);
+    image_export_bmp(WIDTH, HEIGHT, image.pixels, "test_palette.bmp");
+
+    image_clear(&image);
     render_mandelbrot(&image, palette, 0.0, 0.0, 255);
     image_export_bmp(WIDTH, HEIGHT, image.pixels, "mandelbrot.bmp");
 
     image_clear(&image);
     render_julia(&image, palette, -0.207190825000000012496, 0.676656624999999999983, 255);
     image_export_bmp(WIDTH, HEIGHT, image.pixels, "julia.bmp");
+
     return 0;
 }
 #endif
