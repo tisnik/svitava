@@ -110,23 +110,29 @@ enum error {
 
 /* Helper macros */
 #define ENSURE_PROPER_IMAGE_STRUCTURE \
-    if (image == NULL) { \
-        return NULL_IMAGE_POINTER; \
-    } \
-    if (image->pixels == NULL) { \
-        return NULL_PIXELS_POINTER; \
-    }
+    do { \
+        if (image == NULL) { \
+            return NULL_IMAGE_POINTER; \
+        } \
+        if (image->pixels == NULL) { \
+            return NULL_PIXELS_POINTER; \
+        } \
+    } while (0);
 
 #define ENSURE_PROPER_PALETTE \
-    if (palette == NULL) { \
-        return NULL_PALETTE_POINTER; \
-    }
+    do { \
+        if (palette == NULL) { \
+            return NULL_PALETTE_POINTER; \
+        } \
+    } while (0);
 
 /* Avoid division by zero */
 #define ENSURE_NON_EMPTY_IMAGE \
-    if (image->width == 0 || image->height == 0) { \
-        return INVALID_IMAGE_DIMENSION; \
-    }
+    do { \
+        if (image->width == 0 || image->height == 0) { \
+            return INVALID_IMAGE_DIMENSION; \
+        } \
+    } while (0);
 
 /**
  * Compute the total size in bytes of an image's pixel buffer.
