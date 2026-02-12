@@ -108,6 +108,26 @@ enum error {
     INVALID_COORDINATES
 };
 
+/* Helper macros */
+#define ENSURE_PROPER_IMAGE_STRUCTURE \
+    if (image == NULL) { \
+        return NULL_IMAGE_POINTER; \
+    } \
+    if (image->pixels == NULL) { \
+        return NULL_PIXELS_POINTER; \
+    }
+
+#define ENSURE_PROPER_PALETTE \
+    if (palette == NULL) { \
+        return NULL_PALETTE_POINTER; \
+    }
+
+/* Avoid division by zero */
+#define ENSURE_NON_EMPTY_IMAGE \
+    if (image->width == 0 || image->height == 0) { \
+        return INVALID_IMAGE_DIMENSION; \
+    }
+
 /**
  * Compute the total size in bytes of an image's pixel buffer.
  *
@@ -218,12 +238,10 @@ image_t image_clone(const image_t *image) {
  *          OK otherwise
  */
 int image_clear(image_t *image) {
-    if (image == NULL) {
-        return NULL_IMAGE_POINTER;
-    }
-    if (image->pixels == NULL) {
-        return NULL_PIXELS_POINTER;
-    }
+
+    /* Only properly-created images are accepted */
+    ENSURE_PROPER_IMAGE_STRUCTURE
+
     memset(image->pixels, 0x00, image_size(image));
     return OK;
 }
@@ -249,12 +267,10 @@ int image_clear(image_t *image) {
 int image_putpixel(image_t *image, int x, int y, unsigned char r,
                    unsigned char g, unsigned char b, unsigned char a) {
     unsigned char *p;
-    if (image == NULL) {
-        return NULL_IMAGE_POINTER;
-    }
-    if (image->pixels == NULL) {
-        return NULL_PIXELS_POINTER;
-    }
+
+    /* Only properly-created images are accepted */
+    ENSURE_PROPER_IMAGE_STRUCTURE
+
     if (x < 0 || y < 0 || x >= (int)image->width || y >= (int)image->height) {
         return INVALID_COORDINATES;
     }
@@ -296,12 +312,10 @@ int image_putpixel(image_t *image, int x, int y, unsigned char r,
  */
 int image_putpixel_max(image_t *image, int x, int y, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
     unsigned char *p;
-    if (image == NULL) {
-        return NULL_IMAGE_POINTER;
-    }
-    if (image->pixels == NULL) {
-        return NULL_PIXELS_POINTER;
-    }
+
+    /* Only properly-created images are accepted */
+    ENSURE_PROPER_IMAGE_STRUCTURE
+
     if (x < 0 || y < 0 || x >= (int)image->width || y >= (int)image->height) {
         return INVALID_COORDINATES;
     }
@@ -357,12 +371,10 @@ int image_putpixel_max(image_t *image, int x, int y, unsigned char r, unsigned c
  */
 int image_getpixel(const image_t *image, int x, int y, unsigned char *r, unsigned char *g, unsigned char *b, unsigned char *a) {
     const unsigned char *p;
-    if (image == NULL) {
-        return NULL_IMAGE_POINTER;
-    }
-    if (image->pixels == NULL) {
-        return NULL_PIXELS_POINTER;
-    }
+
+    /* Only properly-created images are accepted */
+    ENSURE_PROPER_IMAGE_STRUCTURE
+
     if (x < 0 || y < 0 || x >= (int)image->width || y >= (int)image->height) {
         return INVALID_COORDINATES;
     }
@@ -411,12 +423,10 @@ int image_getpixel(const image_t *image, int x, int y, unsigned char *r, unsigne
  */
 int image_hline(image_t *image, int x1, int x2, int y, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
     int x, fromX = MIN(x1, x2), toX = MAX(x1, x2);
-    if (image == NULL) {
-        return NULL_IMAGE_POINTER;
-    }
-    if (image->pixels == NULL) {
-        return NULL_PIXELS_POINTER;
-    }
+
+    /* Only properly-created images are accepted */
+    ENSURE_PROPER_IMAGE_STRUCTURE
+
     if (fromX < 0 || y < 0 || toX >= (int)image->width || y >= (int)image->height) {
         return INVALID_COORDINATES;
     }
@@ -453,12 +463,10 @@ int image_hline(image_t *image, int x1, int x2, int y, unsigned char r, unsigned
  */
 int image_vline(image_t *image, int x, int y1, int y2, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
     int y, fromY = MIN(y1, y2), toY = MAX(y1, y2);
-    if (image == NULL) {
-        return NULL_IMAGE_POINTER;
-    }
-    if (image->pixels == NULL) {
-        return NULL_PIXELS_POINTER;
-    }
+
+    /* Only properly-created images are accepted */
+    ENSURE_PROPER_IMAGE_STRUCTURE
+
     if (fromY < 0 || x < 0 || toY >= (int)image->height || x >= (int)image->width) {
         return INVALID_COORDINATES;
     }
@@ -499,12 +507,8 @@ int image_line(image_t *image, int x1, int y1, int x2, int y2, unsigned char r, 
     int dy = abs(y2 - y1), sy = y1 < y2 ? 1 : -1;
     int err = (dx > dy ? dx : -dy) / 2, e2;
 
-    if (image == NULL) {
-        return NULL_IMAGE_POINTER;
-    }
-    if (image->pixels == NULL) {
-        return NULL_PIXELS_POINTER;
-    }
+    /* Only properly-created images are accepted */
+    ENSURE_PROPER_IMAGE_STRUCTURE
 
     while (1) {
         /* all checks are performed internally */
@@ -558,12 +562,9 @@ int image_line_aa(image_t *image, int x1, int y1, int x2, int y2, unsigned char 
     int    x, y, xdelta, ydelta, xpdelta, ypdelta, xp, yp;
     int    i, imin, imax;
 
-    if (image == NULL) {
-        return NULL_IMAGE_POINTER;
-    }
-    if (image->pixels == NULL) {
-        return NULL_PIXELS_POINTER;
-    }
+    /* Only properly-created images are accepted */
+    ENSURE_PROPER_IMAGE_STRUCTURE
+
     /* anti-aliasing requires RGBA for proper blending */
     if (image->bpp != RGBA) {
         return INVALID_IMAGE_TYPE;
@@ -1484,24 +1485,14 @@ int render_mandelbrot(const image_t *image, const unsigned char *palette,
     double         step_y;
     unsigned char *p;
 
-    if (image == NULL) {
-        return NULL_IMAGE_POINTER;
-    }
-    if (image->pixels == NULL) {
-        return NULL_PIXELS_POINTER;
-    }
-    if (palette == NULL) {
-        return NULL_PALETTE_POINTER;
-    }
+    /* Only properly-created images are accepted */
+    ENSURE_PROPER_IMAGE_STRUCTURE
+    ENSURE_NON_EMPTY_IMAGE
+    ENSURE_PROPER_PALETTE
 
     /* putpixel() writes 4 bytes per pixel, so only RGBA images are supported */
     if (image->bpp != RGBA) {
         return INVALID_IMAGE_TYPE;
-    }
-
-    /* avoid division by zero */
-    if (image->width == 0 || image->height == 0) {
-        return INVALID_IMAGE_DIMENSION;
     }
 
     p = image->pixels;
@@ -1556,24 +1547,14 @@ int render_julia(const image_t *image, const unsigned char *palette,
     double         step_y;
     unsigned char *p;
 
-    if (image == NULL) {
-        return NULL_IMAGE_POINTER;
-    }
-    if (image->pixels == NULL) {
-        return NULL_PIXELS_POINTER;
-    }
-    if (palette == NULL) {
-        return NULL_PALETTE_POINTER;
-    }
+    /* Only properly-created images are accepted */
+    ENSURE_PROPER_IMAGE_STRUCTURE
+    ENSURE_NON_EMPTY_IMAGE
+    ENSURE_PROPER_PALETTE
 
     /* putpixel() writes 4 bytes per pixel, so only RGBA images are supported */
     if (image->bpp != RGBA) {
         return INVALID_IMAGE_TYPE;
-    }
-
-    /* avoid division by zero */
-    if (image->width == 0 || image->height == 0) {
-        return INVALID_IMAGE_DIMENSION;
     }
 
     p = image->pixels;
