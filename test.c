@@ -1036,12 +1036,271 @@ void test_image_hline_grayscale_image_2x2(void) {
 }
 
 /**
+ * Verify that drawing a vertical line on a NULL image reports a NULL image pointer error.
+ *
+ * Asserts that calling image_vline with a NULL image pointer returns NULL_IMAGE_POINTER.
+ */
+void test_image_vline_null_image(void) {
+    TEST_BEGIN
+    int result = image_vline(NULL, 0, 0, 0, 0, 0, 0, 0);
+    assert(result == NULL_IMAGE_POINTER);
+    TEST_END
+}
+
+/**
+ * Verifies that drawing a vertical line on an image with no pixel buffer reports a NULL pixels error.
+ *
+ * Creates an image struct with valid dimensions and bpp but NULL `pixels`, calls `image_vline`, and
+ * asserts that the function returns `NULL_PIXELS_POINTER`.
+ */
+void test_image_vline_image_without_pixels(void) {
+    TEST_BEGIN
+    image_t image;
+    int     result;
+
+    image.width = 100;
+    image.height = 100;
+    image.bpp = 1;
+    image.pixels = NULL;
+
+    result = image_vline(&image, 0, 0, 0, 0, 0, 0, 0);
+    assert(result == NULL_PIXELS_POINTER);
+    TEST_END
+}
+
+/**
+ * Verify image_vline reports INVALID_COORDINATES when any coordinate is negative.
+ *
+ * Creates a 100x100 grayscale image, clears it, and asserts that image_vline
+ * rejects negative x, y1, and/or y2 values across several combinations.
+ */
+void test_image_vline_negative_coordinates(void) {
+    TEST_BEGIN
+    image_t image;
+    int     result;
+
+    image = image_create(100, 100, GRAYSCALE);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    /* x1 is negative */
+    result = image_vline(&image, -1, 0, 0, 0, 0, 0, 0);
+    assert(result == INVALID_COORDINATES);
+
+    /* x2 is negative */
+    result = image_vline(&image, 0, -1, 0, 0, 0, 0, 0);
+    assert(result == INVALID_COORDINATES);
+
+    /* x1 and x2 are negative */
+    result = image_vline(&image, -1, -1, 0, 0, 0, 0, 0);
+    assert(result == INVALID_COORDINATES);
+
+    /* y is negative */
+    result = image_vline(&image, 0, 0, -1, 0, 0, 0, 0);
+    assert(result == INVALID_COORDINATES);
+
+    /* all coordinates are negative */
+    result = image_vline(&image, -1, -1, -1, 0, 0, 0, 0);
+    assert(result == INVALID_COORDINATES);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Verifies that image_vline rejects coordinates outside the image bounds.
+ *
+ * Creates a 100×100 grayscale image and asserts that image_vline returns
+ * INVALID_COORDINATES when:
+ *  - x is greater than the image width - 1,
+ *  - y1 is greater than the image height - 1,
+ *  - y2 is greater than the image height - 1.
+ *
+ * The test allocates and frees the image pixel buffer and uses assertions to
+ * validate expected return codes.
+ */
+void test_image_vline_coordinates_outside_range(void) {
+    TEST_BEGIN
+    image_t image;
+    int     result;
+
+    image = image_create(100, 100, GRAYSCALE);
+    assert(image.pixels != NULL);
+
+    /* x1 is too large */
+    result = image_vline(&image, 100 + 1, 1, 0, 0, 0, 0, 0);
+    assert(result == INVALID_COORDINATES);
+
+    /* x2 is too large */
+    result = image_vline(&image, 0, 100 + 1, 0, 0, 0, 0, 0);
+    assert(result == INVALID_COORDINATES);
+
+    /* x1 and x2 are too large */
+    result = image_vline(&image, 100 + 1, 100 + 1, 0, 0, 0, 0, 0);
+    assert(result == INVALID_COORDINATES);
+
+    /* y is too large */
+    result = image_vline(&image, 1, 2, 100 + 1, 0, 0, 0, 0);
+    assert(result == INVALID_COORDINATES);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test drawing a vertical line on a 1x1 RGB image.
+ *
+ * Verifies that calling image_vline on a 1x1 RGB image writes the provided RGB components
+ * into the single pixel and returns OK; frees the image pixels after the check.
+ */
+void test_image_vline_rgb_image_1x1(void) {
+    TEST_BEGIN
+    image_t       image;
+    unsigned char expected[3] = {100, 150, 200};
+    int           result;
+
+    image = image_create(1, 1, RGB);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    result = image_vline(&image, 0, 0, 0, 100, 150, 200, 250);
+    assert(result == OK);
+    assert(memcmp((void *)expected, (void *)image.pixels, 3) == 0);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test drawing a vertical RGB line across the first row of a 2x2 image.
+ *
+ * Creates a 2x2 RGB image, clears it, draws a vertical line from y=0 to y=1 at x=0
+ * with color components R=100, G=150, B=200 (alpha provided but ignored for RGB),
+ * and verifies the pixel buffer layout: the first two pixels contain the RGB values
+ * and the remaining pixels remain zeroed.
+ */
+void test_image_vline_rgb_image_2x2(void) {
+    TEST_BEGIN
+    image_t       image;
+    unsigned char expected[12] = {100, 150, 200, 0, 0, 0, 100, 150, 200, 0, 0, 0};
+    int           result;
+
+    image = image_create(2, 2, RGB);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    result = image_vline(&image, 0, 0, 1, 100, 150, 200, 250);
+    assert(result == OK);
+    assert(memcmp((void *)expected, (void *)image.pixels, 12) == 0);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test that drawing a vertical line on a 1x1 RGBA image writes the provided RGBA values to the single pixel.
+ *
+ * Creates a 1x1 RGBA image, clears it, draws a vertical line covering the single pixel with RGBA(100,150,200,250),
+ * and asserts the operation returns OK and the image pixel buffer matches the expected bytes.
+ */
+void test_image_vline_rgba_image_1x1(void) {
+    TEST_BEGIN
+    image_t       image;
+    unsigned char expected[4] = {100, 150, 200, 250};
+    int           result;
+
+    image = image_create(1, 1, RGBA);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    result = image_vline(&image, 0, 0, 0, 100, 150, 200, 250);
+    assert(result == OK);
+    assert(memcmp((void *)expected, (void *)image.pixels, 4) == 0);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test drawing a vertical RGBA line across the first row of a 2x2 image.
+ *
+ * Creates a 2x2 RGBA image, clears it, draws a vertical line from x=0 to x=1 at y=0
+ * with color components R=100, G=150, B=200, A=250, and verifies the pixel buffer layout:
+ * the first two pixels contain the RGBA values and the remaining pixels remain zeroed.
+ */
+void test_image_vline_rgba_image_2x2(void) {
+    TEST_BEGIN
+    image_t       image;
+    unsigned char expected[16] = {100, 150, 200, 250, 0, 0, 0, 0, 100, 150, 200, 250, 0, 0, 0, 0};
+    int           result;
+
+    image = image_create(2, 2, RGBA);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    result = image_vline(&image, 0, 0, 1, 100, 150, 200, 250);
+    assert(result == OK);
+    assert(memcmp((void *)expected, (void *)image.pixels, 16) == 0);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Verifies that drawing a vertical line on a 1x1 grayscale image writes the expected single pixel value.
+ *
+ * Creates a 1x1 grayscale image, clears it, draws a vertical line at y=0 from x=0 to x=0 with provided color components,
+ * and asserts that the image's single pixel matches the expected grayscale value.
+ */
+void test_image_vline_grayscale_image_1x1(void) {
+    TEST_BEGIN
+    image_t       image;
+    unsigned char expected[1] = {1};
+    int           result;
+
+    image = image_create(1, 1, GRAYSCALE);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    result = image_vline(&image, 0, 0, 0, 1, 2, 3, 4);
+    assert(result == OK);
+    assert(memcmp((void *)expected, (void *)image.pixels, 1) == 0);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Verifies that drawing a vertical line on a 2x2 grayscale image writes the expected pixel values.
+ *
+ * Creates a 2x2 grayscale image, clears it, draws a vertical span across the first row, and asserts
+ * that the pixels in the affected span are set to the expected grayscale values while other pixels remain unchanged.
+ */
+void test_image_vline_grayscale_image_2x2(void) {
+    TEST_BEGIN
+    image_t       image;
+    unsigned char expected[4] = {1, 0, 1, 0};
+    int           result;
+
+    image = image_create(2, 2, GRAYSCALE);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    result = image_vline(&image, 0, 0, 1, 1, 2, 3, 4);
+    assert(result == OK);
+    assert(memcmp((void *)expected, (void *)image.pixels, 4) == 0);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
  * Run the complete image processing test suite in a deterministic order.
  *
  * Executes all unit tests covering image size, creation, cloning, clearing,
- * pixel writing (putpixel and putpixel_max), pixel reading (getpixel), and
- * horizontal line drawing (hline). Tests are invoked in grouped sections to
- * ensure predictable setup and teardown across cases.
+ * pixel writing (putpixel and putpixel_max), pixel reading (getpixel),
+ * horizontal and vertical line drawing (hline). Tests are invoked in grouped
+ * sections to ensure predictable setup and teardown across cases.
  *
  * @return 0 on success.
  */
@@ -1109,6 +1368,18 @@ int main(void) {
     test_image_hline_rgba_image_2x2();
     test_image_hline_grayscale_image_1x1();
     test_image_hline_grayscale_image_2x2();
+
+    /* tests for function image_vline */
+    test_image_vline_null_image();
+    test_image_vline_image_without_pixels();
+    test_image_vline_negative_coordinates();
+    test_image_vline_coordinates_outside_range();
+    test_image_vline_rgb_image_1x1();
+    test_image_vline_rgb_image_2x2();
+    test_image_vline_rgba_image_1x1();
+    test_image_vline_rgba_image_2x2();
+    test_image_vline_grayscale_image_1x1();
+    test_image_vline_grayscale_image_2x2();
 
     return 0;
 }
