@@ -109,29 +109,29 @@ enum error {
 };
 
 /* Helper macros */
-#define ENSURE_PROPER_IMAGE_STRUCTURE \
-    do { \
-        if (image == NULL) { \
-            return NULL_IMAGE_POINTER; \
-        } \
-        if (image->pixels == NULL) { \
+#define ENSURE_PROPER_IMAGE_STRUCTURE   \
+    do {                                \
+        if (image == NULL) {            \
+            return NULL_IMAGE_POINTER;  \
+        }                               \
+        if (image->pixels == NULL) {    \
             return NULL_PIXELS_POINTER; \
-        } \
+        }                               \
     } while (0);
 
-#define ENSURE_PROPER_PALETTE \
-    do { \
-        if (palette == NULL) { \
+#define ENSURE_PROPER_PALETTE            \
+    do {                                 \
+        if (palette == NULL) {           \
             return NULL_PALETTE_POINTER; \
-        } \
+        }                                \
     } while (0);
 
 /* Avoid division by zero */
-#define ENSURE_NON_EMPTY_IMAGE \
-    do { \
+#define ENSURE_NON_EMPTY_IMAGE                         \
+    do {                                               \
         if (image->width == 0 || image->height == 0) { \
-            return INVALID_IMAGE_DIMENSION; \
-        } \
+            return INVALID_IMAGE_DIMENSION;            \
+        }                                              \
     } while (0);
 
 /**
@@ -518,10 +518,12 @@ int image_line(image_t *image, int x1, int y1, int x2, int y2, unsigned char r, 
 
     while (1) {
         /* all checks are performed internally */
+        /* TODO: fast putpixel function w/o any checks */
         int result = image_putpixel(image, x1, y1, r, g, b, a);
         if (result != OK) {
             return result;
         }
+        /* we reached endpoint */
         if (x1 == x2 && y1 == y2) {
             return OK;
         }
@@ -646,6 +648,7 @@ int image_line_aa(image_t *image, int x1, int y1, int x2, int y2, unsigned char 
             c1 = 255;
         }
         c2 = 255 - c1;
+        /* TODO: fast putpixel function w/o any checks */
         image_putpixel_max(image, x + xp, y + yp, (r * c1) / 255, (g * c1) / 255, (b * c1) / 255, a);
         image_putpixel_max(image, x, y, (r * c2) / 255, (g * c2) / 255, (b * c2) / 255, a);
         e = e + p;
@@ -1530,7 +1533,7 @@ int render_mandelbrot(const image_t *image, const unsigned char *palette,
  *          OK otherwise
  */
 int render_julia(const image_t *image, const unsigned char *palette,
-                  double cx, double cy, int maxiter) {
+                 double cx, double cy, int maxiter) {
     int            x, y;
     double         zx0, zy0;
     double         xmin = -1.5, ymin = -1.5, xmax = 1.5, ymax = 1.5;
