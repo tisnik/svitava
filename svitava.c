@@ -1580,6 +1580,73 @@ int render_julia(const image_t *image, const unsigned char *palette,
     return OK;
 }
 
+/**
+ * Renders a cubic Mandelbrot fractal (z = z³ + c) into the pixel buffer.
+ *
+ * Each pixel is mapped to a point in the complex plane, and the cubic
+ * Mandelbrot iteration is performed up to `maxiter` times. The number of
+ * iterations before escape determines the color index from the palette.
+ *
+ * @returns NULL_IMAGE_POINTER when the input image is NULL
+ *          NULL_PIXELS_POINTER when pixels are not allocated,
+ *          NULL_PALETTE_POINTER when the palette is NULL
+ *          INVALID_IMAGE_TYPE for images that are not of type RGBA
+ *          INVALID_IMAGE_DIMENSION if image has zero width/height
+ *          OK otherwise
+ */
+int render_mandelbrot_3(const image_t *image, const unsigned char *palette,
+                        double zx0, double zy0, int maxiter) {
+    int            x, y;
+    double         cx, cy;
+    double         xmin = -1.5, ymin = -1.5, xmax = 1.5, ymax = 1.5;
+    double         step_x;
+    double         step_y;
+    unsigned char *p;
+
+    /* Only properly-created images are accepted */
+    ENSURE_PROPER_IMAGE_STRUCTURE
+    ENSURE_NON_EMPTY_IMAGE
+    ENSURE_PROPER_PALETTE
+
+    /* putpixel() writes 4 bytes per pixel, so only RGBA images are supported */
+    if (image->bpp != RGBA) {
+        return INVALID_IMAGE_TYPE;
+    }
+
+    p = image->pixels;
+    step_x = (xmax - xmin) / image->width;
+    step_y = (ymax - ymin) / image->height;
+
+    cy = ymin;
+    for (y = 0; y < image->height; y++) {
+        cx = xmin;
+        for (x = 0; x < image->width; x++) {
+            double       zx = zx0;
+            double       zy = zy0;
+            unsigned int i = 0;
+            while (i < maxiter) {
+                double zx2 = zx * zx;
+                double zy2 = zy * zy;
+                double zx3 = zx2 * zx;
+                double zy3 = zy2 * zy;
+                double zxn, zyn;
+                if (zx2 + zy2 > 4.0) {
+                    break;
+                }
+                zxn = zx3 - 3.0 * zx * zy2 + cx;
+                zyn = -zy3 + 3.0 * zx2 * zy + cy;
+                zx = zxn;
+                zy = zyn;
+                i++;
+            }
+            putpixel(&p, palette, i);
+            cx += step_x;
+        }
+        cy += step_y;
+    }
+    return OK;
+}
+
 #ifndef NO_MAIN
 int main(int argc, char **argv) {
 #define WIDTH 512
@@ -1609,6 +1676,10 @@ int main(int argc, char **argv) {
     image_clear(&image);
     render_julia(&image, palette, -0.207190825000000012496, 0.676656624999999999983, 255);
     image_export_bmp(WIDTH, HEIGHT, image.pixels, "julia.bmp");
+
+    image_clear(&image);
+    render_mandelbrot_3(&image, palette, 0.0, 0.0, 255);
+    image_export_bmp(WIDTH, HEIGHT, image.pixels, "mandelbrot_3.bmp");
 
     return 0;
 }
