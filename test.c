@@ -1295,6 +1295,212 @@ void test_image_vline_grayscale_image_2x2(void) {
 }
 
 /**
+ * Verify that drawing a line on a NULL image reports a NULL image pointer error.
+ *
+ * Asserts that calling image_line with a NULL image pointer returns NULL_IMAGE_POINTER.
+ */
+void test_image_line_null_image(void) {
+    TEST_BEGIN
+    int result = image_line(NULL, 0, 0, 0, 0, 0, 0, 0, 0);
+    assert(result == NULL_IMAGE_POINTER);
+    TEST_END
+}
+
+/**
+ * Verifies that drawing a line on an image with no pixel buffer reports a NULL pixels error.
+ *
+ * Creates an image struct with valid dimensions and bpp but NULL `pixels`, calls `image_line`, and
+ * asserts that the function returns `NULL_PIXELS_POINTER`.
+ */
+void test_image_line_image_without_pixels(void) {
+    TEST_BEGIN
+    image_t image;
+    int     result;
+
+    image.width = 100;
+    image.height = 100;
+    image.bpp = 1;
+    image.pixels = NULL;
+
+    result = image_line(&image, 0, 0, 0, 0, 0, 0, 0, 0);
+    assert(result == NULL_PIXELS_POINTER);
+    TEST_END
+}
+
+/**
+ * Verify image_line reports INVALID_COORDINATES when any coordinate is negative.
+ *
+ * Creates a 100x100 grayscale image, clears it, and asserts that image_line
+ * rejects negative x1, y1, x2, and/or y2 values across several combinations.
+ */
+void test_image_line_negative_coordinates(void) {
+    TEST_BEGIN
+    image_t image;
+    int     result;
+
+    image = image_create(100, 100, GRAYSCALE);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    /* x1 is negative */
+    result = image_line(&image, -1, 0, 0, 0, 0, 0, 0, 0);
+    assert(result == INVALID_COORDINATES);
+
+    /* x2 is negative */
+    result = image_line(&image, 0, 0, -1, 0, 0, 0, 0, 0);
+    assert(result == INVALID_COORDINATES);
+
+    /* x1 and x2 are negative */
+    result = image_line(&image, -1, 0, -1, 0, 0, 0, 0, 0);
+    assert(result == INVALID_COORDINATES);
+
+    /* y1 is negative */
+    result = image_line(&image, 0, -1, 0, 0, 0, 0, 0, 0);
+    assert(result == INVALID_COORDINATES);
+
+    /* y2 is negative */
+    result = image_line(&image, 0, 0, 0, -1, 0, 0, 0, 0);
+    assert(result == INVALID_COORDINATES);
+
+    /* all coordinates are negative */
+    result = image_line(&image, -1, -1, -1, -1, 0, 0, 0, 0);
+    assert(result == INVALID_COORDINATES);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Verifies that image_line rejects coordinates outside the image bounds.
+ *
+ * Creates a 100×100 grayscale image and asserts that image_line returns
+ * INVALID_COORDINATES when:
+ *  - x1 is greater than the image width - 1,
+ *  - x2 is greater than the image width - 1,
+ *  - y1 is greater than the image height - 1,
+ *  - y2 is greater than the image height - 1.
+ *
+ * The test allocates and frees the image pixel buffer and uses assertions to
+ * validate expected return codes.
+ */
+void test_image_line_coordinates_outside_range(void) {
+    TEST_BEGIN
+    image_t image;
+    int     result;
+
+    image = image_create(100, 100, GRAYSCALE);
+    assert(image.pixels != NULL);
+
+    /* x1 is too large */
+    result = image_line(&image, 100 + 1, 1, 0, 0, 0, 0, 0, 0);
+    assert(result == INVALID_COORDINATES);
+
+    /* x2 is too large */
+    result = image_line(&image, 0, 0, 100 + 1, 0, 0, 0, 0, 0);
+    assert(result == INVALID_COORDINATES);
+
+    /* x1 and x2 are too large */
+    result = image_line(&image, 100 + 1, 0, 100 + 1, 0, 0, 0, 0, 0);
+    assert(result == INVALID_COORDINATES);
+
+    /* y1 is too large */
+    result = image_line(&image, 1, 100 + 1, 0, 0, 0, 0, 0, 0);
+    assert(result == INVALID_COORDINATES);
+
+    /* y2 is too large */
+    result = image_line(&image, 1, 0, 1, 100 + 1, 0, 0, 0, 0);
+    assert(result == INVALID_COORDINATES);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test drawing a line on a 1x1 RGB image.
+ *
+ * Verifies that calling image_line on a 1x1 RGB image writes the provided RGB components
+ * into the single pixel and returns OK; frees the image pixels after the check.
+ */
+void test_image_line_rgb_image_1x1(void) {
+    TEST_BEGIN
+    image_t       image;
+    unsigned char expected[3] = {100, 150, 200};
+    int           result;
+
+    image = image_create(1, 1, RGB);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    result = image_line(&image, 0, 0, 0, 0, 100, 150, 200, 250);
+    assert(result == OK);
+    assert(memcmp((void *)expected, (void *)image.pixels, 3) == 0);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test drawing a RGB line across the 2x2 image.
+ *
+ * Creates a 2x2 RGB image, clears it, draws horizontal, vertical, and
+ * diagonal lines with color components R=100, G=150, B=200 (alpha provided
+ * but ignored for RGB), and verifies the pixel buffer layout.
+ */
+void test_image_line_rgb_image_2x2(void) {
+    TEST_BEGIN
+    image_t       image;
+    unsigned char expected_v1[12] = {100, 150, 200, 0, 0, 0, 100, 150, 200, 0, 0, 0};
+    unsigned char expected_v2[12] = {0, 0, 0, 100, 150, 200, 0, 0, 0, 100, 150, 200};
+    unsigned char expected_h1[12] = {100, 150, 200, 100, 150, 200, 0, 0, 0, 0, 0, 0};
+    unsigned char expected_h2[12] = {0, 0, 0, 0, 0, 0, 100, 150, 200, 100, 150, 200};
+    unsigned char expected_d1[12] = {100, 150, 200, 0, 0, 0, 0, 0, 0, 100, 150, 200};
+    unsigned char expected_d2[12] = {0, 0, 0, 100, 150, 200, 100, 150, 200, 0, 0, 0};
+    int           result;
+
+    image = image_create(2, 2, RGB);
+    assert(image.pixels != NULL);
+
+    /* horizontal line for y1=y2=0 */
+    image_clear(&image);
+    result = image_line(&image, 0, 0, 1, 0, 100, 150, 200, 250);
+    assert(result == OK);
+    assert(memcmp((void *)expected_h1, (void *)image.pixels, 12) == 0);
+
+    /* horizontal line for y1=y2=1 */
+    image_clear(&image);
+    result = image_line(&image, 0, 1, 1, 1, 100, 150, 200, 250);
+    assert(result == OK);
+    assert(memcmp((void *)expected_h2, (void *)image.pixels, 12) == 0);
+
+    /* vertical line for x1=x2=0 */
+    image_clear(&image);
+    result = image_line(&image, 0, 0, 0, 1, 100, 150, 200, 250);
+    assert(result == OK);
+    assert(memcmp((void *)expected_v1, (void *)image.pixels, 12) == 0);
+
+    /* vertical line for x1=x2=1 */
+    image_clear(&image);
+    result = image_line(&image, 1, 0, 1, 1, 100, 150, 200, 250);
+    assert(result == OK);
+    assert(memcmp((void *)expected_v2, (void *)image.pixels, 12) == 0);
+
+    /* diagonal line from (0,0) to (1,1) */
+    image_clear(&image);
+    result = image_line(&image, 0, 0, 1, 1, 100, 150, 200, 250);
+    assert(result == OK);
+    assert(memcmp((void *)expected_d1, (void *)image.pixels, 12) == 0);
+
+    /* diagonal line from (0,1) to (1,0) */
+    image_clear(&image);
+    result = image_line(&image, 0, 1, 1, 0, 100, 150, 200, 250);
+    assert(result == OK);
+    assert(memcmp((void *)expected_d2, (void *)image.pixels, 12) == 0);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
  * Run the complete image processing test suite in a deterministic order.
  *
  * Executes all unit tests covering image size, creation, cloning, clearing,
@@ -1380,6 +1586,14 @@ int main(void) {
     test_image_vline_rgba_image_2x2();
     test_image_vline_grayscale_image_1x1();
     test_image_vline_grayscale_image_2x2();
+
+    /* tests for function image_line */
+    test_image_line_null_image();
+    test_image_line_image_without_pixels();
+    test_image_line_negative_coordinates();
+    test_image_line_coordinates_outside_range();
+    test_image_line_rgb_image_1x1();
+    test_image_line_rgb_image_2x2();
 
     return 0;
 }
