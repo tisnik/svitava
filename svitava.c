@@ -63,6 +63,8 @@ render_test_rgb_image
 render_test_palette_image
 render_mandelbrot
 render_julia
+render_mandelbrot_3
+render_julia_3
 
 */
 
@@ -1639,10 +1641,82 @@ int render_mandelbrot_3(const image_t *image, const unsigned char *palette,
                 zy = zyn;
                 i++;
             }
-            putpixel(&p, palette, i);
+            putpixel(&p, palette, i % 256);
             cx += step_x;
         }
         cy += step_y;
+    }
+    return OK;
+}
+
+/**
+ * Renders a cubic Julia set fractal image using the formula z = z³ + c.
+ *
+ * Each pixel is mapped to a point in the complex plane, and the cubic Julia
+ * iteration is performed up to `maxiter` times or until the escape radius is
+ * exceeded. The number of iterations before escape determines the color, which
+ * is selected from the palette.
+ *
+ * @param cx Real part of the constant complex parameter c.
+ * @param cy Imaginary part of the constant complex parameter c.
+ * @param maxiter Maximum number of iterations for the escape test.
+ *
+ * @returns NULL_IMAGE_POINTER when the input image is NULL
+ *          NULL_PIXELS_POINTER when pixels are not allocated,
+ *          NULL_PALETTE_POINTER when the palette is NULL
+ *          INVALID_IMAGE_TYPE for images that are not of type RGBA
+ *          INVALID_IMAGE_DIMENSION if image has zero width/height
+ *          OK otherwise
+ */
+int render_julia_3(const image_t *image, const unsigned char *palette,
+                   double cx, double cy, int maxiter) {
+    int            x, y;
+    double         zx0, zy0;
+    double         step_x;
+    double         step_y;
+    double         xmin = -1.5, ymin = -1.5, xmax = 1.5, ymax = 1.5;
+    unsigned char *p;
+
+    /* Only properly-created images are accepted */
+    ENSURE_PROPER_IMAGE_STRUCTURE
+    ENSURE_NON_EMPTY_IMAGE
+    ENSURE_PROPER_PALETTE
+
+    /* putpixel() writes 4 bytes per pixel, so only RGBA images are supported */
+    if (image->bpp != RGBA) {
+        return INVALID_IMAGE_TYPE;
+    }
+
+    p = image->pixels;
+    step_x = (xmax - xmin) / image->width;
+    step_y = (ymax - ymin) / image->height;
+
+    zy0 = ymin;
+    for (y = 0; y < image->height; y++) {
+        zx0 = xmin;
+        for (x = 0; x < image->width; x++) {
+            double       zx = zx0;
+            double       zy = zy0;
+            unsigned int i = 0;
+            while (i < maxiter) {
+                double zx2 = zx * zx;
+                double zy2 = zy * zy;
+                double zx3 = zx2 * zx;
+                double zy3 = zy2 * zy;
+                double zxn, zyn;
+                if (zx2 + zy2 > 4.0) {
+                    break;
+                }
+                zxn = zx3 - 3.0 * zx * zy2 + cx;
+                zyn = -zy3 + 3.0 * zx2 * zy + cy;
+                zx = zxn;
+                zy = zyn;
+                i++;
+            }
+            putpixel(&p, palette, i % 256);
+            zx0 += step_x;
+        }
+        zy0 += step_y;
     }
     return OK;
 }
@@ -1680,6 +1754,10 @@ int main(int argc, char **argv) {
     image_clear(&image);
     render_mandelbrot_3(&image, palette, 0.0, 0.0, 255);
     image_export_bmp(WIDTH, HEIGHT, image.pixels, "mandelbrot_3.bmp");
+
+    image_clear(&image);
+    render_julia_3(&image, palette, 0.12890625, -0.796875, 1000);
+    image_export_bmp(WIDTH, HEIGHT, image.pixels, "julia_3.bmp");
 
     return 0;
 }
