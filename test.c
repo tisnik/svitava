@@ -1442,9 +1442,9 @@ void test_image_line_rgb_image_1x1(void) {
 /**
  * Test drawing a RGB line across the 2x2 image.
  *
- * Creates a 2x2 RGB image, clears it, draws a ertical line with color
- * components R=100, G=150, B=200 (alpha provided but ignored for RGB), and
- * verifies the pixel buffer layout.
+ * Creates a 2x2 RGB image, clears it, draws horizontal, vertical, and
+ * diagonal lines with color components R=100, G=150, B=200 (alpha provided
+ * but ignored for RGB), and verifies the pixel buffer layout.
  */
 void test_image_line_rgb_image_2x2(void) {
     TEST_BEGIN
