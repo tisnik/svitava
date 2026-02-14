@@ -14,6 +14,7 @@ clean:
 	rm -f *.gcno
 	rm -f *.gcda
 	rm -f coverage.*
+	rm -f *.bmp
 
 run:	$(EXENAME)
 	./$(EXENAME)
