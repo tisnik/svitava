@@ -1484,13 +1484,13 @@ void test_image_line_rgb_image_2x2(void) {
     assert(result == OK);
     assert(memcmp((void *)expected_v2, (void *)image.pixels, 12) == 0);
 
-    /* diagonal line for x1=x2=0 */
+    /* diagonal line from (0,0) to (1,1) */
     image_clear(&image);
     result = image_line(&image, 0, 0, 1, 1, 100, 150, 200, 250);
     assert(result == OK);
     assert(memcmp((void *)expected_d1, (void *)image.pixels, 12) == 0);
 
-    /* diagonal line for x1=x2=1 */
+    /* diagonal line from (0,1) to (1,0) */
     image_clear(&image);
     result = image_line(&image, 0, 1, 1, 0, 100, 150, 200, 250);
     assert(result == OK);
