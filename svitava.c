@@ -1790,6 +1790,79 @@ int render_mandelbrot_4(const image_t *image, const unsigned char *palette,
     return OK;
 }
 
+/**
+ * Renders a quartic Julia set fractal image using the formula z = z⁴ + c.
+ *
+ * Iterates the quartic Julia set for each pixel, mapping image coordinates to
+ * the complex plane in the range [-1.5, 1.5] for both axes. The constant
+ * complex parameter c is specified by `cx` and `cy`. Each pixel is colored
+ * based on the number of iterations before escape, using the provided palette.
+ *
+ * @param cx Real part of the constant parameter c for the Julia set.
+ * @param cy Imaginary part of the constant parameter c for the Julia set.
+ * @param maxiter Maximum number of iterations for the escape condition.
+ *
+ * @returns NULL_IMAGE_POINTER when the input image is NULL
+ *          NULL_PIXELS_POINTER when pixels are not allocated,
+ *          NULL_PALETTE_POINTER when the palette is NULL
+ *          INVALID_IMAGE_TYPE for images that are not of type RGBA
+ *          INVALID_IMAGE_DIMENSION if image has zero width/height
+ *          OK otherwise
+ */
+int render_julia_4(const image_t *image, const unsigned char *palette,
+                    double cx, double cy, int maxiter) {
+    int            x, y;
+    double         zx0, zy0;
+    double         step_x;
+    double         step_y;
+    double         xmin = -1.5, ymin = -1.5, xmax = 1.5, ymax = 1.5;
+    unsigned char *p;
+
+    /* Only properly-created images are accepted */
+    ENSURE_PROPER_IMAGE_STRUCTURE
+    ENSURE_NON_EMPTY_IMAGE
+    ENSURE_PROPER_PALETTE
+
+    /* putpixel() writes 4 bytes per pixel, so only RGBA images are supported */
+    if (image->bpp != RGBA) {
+        return INVALID_IMAGE_TYPE;
+    }
+
+    p = image->pixels;
+    step_x = (xmax - xmin) / image->width;
+    step_y = (ymax - ymin) / image->height;
+
+    zy0 = ymin;
+    for (y = 0; y < image->height; y++) {
+        zx0 = xmin;
+        for (x = 0; x < image->width; x++) {
+            double       zx = zx0;
+            double       zy = zy0;
+            unsigned int i = 0;
+            while (i < maxiter) {
+                double zx2 = zx * zx;
+                double zy2 = zy * zy;
+                double zx4, zy4;
+                double zxn, zyn;
+                if (zx2 + zy2 > 4.0) {
+                    break;
+                }
+                zxn = zx2 - zy2;
+                zyn = 2.0 * zx * zy;
+                zx4 = zxn * zxn;
+                zy4 = zyn * zyn;
+                zy = 2.0 * zxn * zyn + cy;
+                zx = zx4 - zy4 + cx;
+                i++;
+            }
+            putpixel(&p, palette, i % 256);
+            zx0 += step_x;
+        }
+        zy0 += step_y;
+    }
+    return OK;
+}
+
 #ifndef NO_MAIN
 int main(int argc, char **argv) {
 #define WIDTH 512
@@ -1831,6 +1904,10 @@ int main(int argc, char **argv) {
     image_clear(&image);
     render_mandelbrot_4(&image, palette, 0.0, 0.0, 255);
     image_export_bmp(WIDTH, HEIGHT, image.pixels, "mandelbrot_4.bmp");
+
+    image_clear(&image);
+    render_julia_4(&image, palette, 0.375, -0.97265625, 1000);
+    image_export_ppm_binary(WIDTH, HEIGHT, image.pixels, "julia_4.ppm");
 
     return 0;
 }
