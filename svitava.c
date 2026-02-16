@@ -1863,6 +1863,73 @@ int render_julia_4(const image_t *image, const unsigned char *palette,
     return OK;
 }
 
+/**
+ * Renders the Barnsley Mandelbrot-type fractal (variant m1) into a pixel buffer.
+ *
+ *
+ * @returns NULL_IMAGE_POINTER when the input image is NULL
+ *          NULL_PIXELS_POINTER when pixels are not allocated,
+ *          NULL_PALETTE_POINTER when the palette is NULL
+ *          INVALID_IMAGE_TYPE for images that are not of type RGBA
+ *          INVALID_IMAGE_DIMENSION if image has zero width/height
+ *          OK otherwise
+ */
+int render_barnsley_m1(const image_t *image, const unsigned char *palette,
+                        double zx0, double zy0, int maxiter) {
+    int            x, y;
+    double         cx, cy;
+    double         xmin = -2.0, ymin = -2.0, xmax = 2.0, ymax = 2.0;
+    double         step_x;
+    double         step_y;
+    unsigned char *p;
+
+    /* Only properly-created images are accepted */
+    ENSURE_PROPER_IMAGE_STRUCTURE
+    ENSURE_NON_EMPTY_IMAGE
+    ENSURE_PROPER_PALETTE
+
+    /* putpixel() writes 4 bytes per pixel, so only RGBA images are supported */
+    if (image->bpp != RGBA) {
+        return INVALID_IMAGE_TYPE;
+    }
+
+    p = image->pixels;
+    step_x = (xmax - xmin) / image->width;
+    step_y = (ymax - ymin) / image->height;
+
+    cy = ymin;
+    for (y = 0; y < image->height; y++) {
+        cx = xmin;
+        for (x = 0; x < image->width; x++) {
+            double       zx = zx0;
+            double       zy = zy0;
+            unsigned int i = 0;
+            while (i < maxiter) {
+                double zx2 = zx * zx;
+                double zy2 = zy * zy;
+                double zxn, zyn;
+                if (zx2 + zy2 > 4.0) {
+                    break;
+                }
+                if (zx >= 0) {
+                    zxn = zx * cx - zy * cy - cx;
+                    zyn = zx * cy + zy * cx - cy;
+                } else {
+                    zxn = zx * cx - zy * cy + cx;
+                    zyn = zx * cy + zy * cx + cy;
+                }
+                zx = zxn;
+                zy = zyn;
+                i++;
+            }
+            putpixel(&p, palette, i % 256);
+            cx += step_x;
+        }
+        cy += step_y;
+    }
+    return OK;
+}
+
 #ifndef NO_MAIN
 int main(int argc, char **argv) {
 #define WIDTH 512
@@ -1908,6 +1975,10 @@ int main(int argc, char **argv) {
     image_clear(&image);
     render_julia_4(&image, palette, 0.375, -0.97265625, 1000);
     image_export_ppm_binary(WIDTH, HEIGHT, image.pixels, "julia_4.ppm");
+
+    image_clear(&image);
+    render_barnsley_m1(&image, palette, 0, 0, 1000);
+    image_export_ppm_binary(WIDTH, HEIGHT, image.pixels, "barnsley_m1.ppm");
 
     return 0;
 }
