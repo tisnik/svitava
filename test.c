@@ -1505,7 +1505,7 @@ void test_image_line_rgb_image_2x2(void) {
  *
  * Executes all unit tests covering image size, creation, cloning, clearing,
  * pixel writing (putpixel and putpixel_max), pixel reading (getpixel),
- * horizontal and vertical line drawing (hline). Tests are invoked in grouped
+ * horizontal, vertical and general line drawing. Tests are invoked in grouped
  * sections to ensure predictable setup and teardown across cases.
  *
  * @return 0 on success.
