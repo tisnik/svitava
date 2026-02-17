@@ -52,6 +52,7 @@ image_export_ppm_ascii
 image_export_ppm_binary
 image_export_bmp
 image_export_tga
+image_export_png
 
 Image import operations:
 ------------------------
@@ -72,6 +73,10 @@ render_julia_3
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef SUPPORT_PNG
+#include <png.h>
+#endif
 
 /* Image types */
 #define GRAYSCALE 1
@@ -1357,6 +1362,115 @@ int image_export_tga(unsigned int width, unsigned int height,
     return 0;
 }
 
+#ifdef SUPPORT_PNG
+/**
+ * Export raw RGBA pixel data as an PNG.
+ *
+ * Expects pixels in 4-byte RGBA order
+ * @param width Image width in pixels.
+ * @param height Image height in pixels.
+ * @param pixels Pointer to pixel buffer containing width*height*4 bytes in RGBA order.
+ * @param file_name Destination file path for the PNG output.
+ * @returns 0 on success, 1 if `pixels` is NULL, -1 on file open/write/close failure.
+ */
+int image_export_png(unsigned int width, unsigned int height,
+                     const unsigned char *pixels, const char *file_name) {
+    FILE                *fout;
+    const unsigned char *p = pixels;
+    int code = 0;
+    int scanline;
+    png_structp png_ptr = NULL;
+    png_infop info_ptr = NULL;
+
+    char *title = NULL;
+
+    if (pixels == NULL || file_name == NULL) {
+        return -1;
+    }
+
+    /* open file for writing in binary mode */
+    fout = fopen(file_name, "wb");
+    if (fout == NULL)
+    {
+        fprintf(stderr, "Could not open file %s for writing\n", file_name);
+        code = 1;
+        goto FINALISE;
+    }
+
+    /* initialize write structure */
+    png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    if (png_ptr == NULL)
+    {
+        fprintf(stderr, "Could not allocate write struct\n");
+        code = 1;
+        goto FINALISE;
+    }
+
+    /* initialize info structure */
+    info_ptr = png_create_info_struct(png_ptr);
+    if (info_ptr == NULL)
+    {
+        fprintf(stderr, "Could not allocate info struct\n");
+        code = 1;
+        goto FINALISE;
+    }
+
+    /* setup Exception handling */
+    if (setjmp(png_jmpbuf(png_ptr)))
+    {
+        fprintf(stderr, "Error during png creation\n");
+        code = 1;
+        goto FINALISE;
+    }
+
+    png_init_io(png_ptr, fout);
+
+    /* write header (8 bit colour depth) */
+    png_set_IHDR(png_ptr, info_ptr, width, height,
+            8, PNG_COLOR_TYPE_RGBA, PNG_INTERLACE_NONE,
+            PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+
+    /* set the title */
+    if (title != NULL)
+    {
+        png_text title_text;
+        title_text.compression = PNG_TEXT_COMPRESSION_NONE;
+        title_text.key = "Title";
+        title_text.text = title;
+        png_set_text(png_ptr, info_ptr, &title_text, 1);
+    }
+
+    png_write_info(png_ptr, info_ptr);
+
+    /* write image data */
+    for (scanline=0 ; scanline<height; scanline++)
+    {
+        png_write_row(png_ptr, p);
+        /* TODO: not only RGBA! */
+        p += width * 4;
+    }
+
+    /* end write */
+    png_write_end(png_ptr, NULL);
+
+FINALISE:
+    if (fout != NULL)
+    {
+        fclose(fout);
+    }
+    if (info_ptr != NULL)
+    {
+        png_free_data(png_ptr, info_ptr, PNG_FREE_ALL, -1);
+    }
+    if (png_ptr != NULL)
+    {
+        png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
+    }
+
+    return code;
+}
+#endif
+
 /**
  * Writes an RGB color from the palette at the specified index into the pixel
  * buffer and advances the pixel pointer by 4 bytes.
@@ -1371,7 +1485,7 @@ void putpixel(unsigned char **pixel, const unsigned char *palette,
     *(*pixel)++ = *pal++;
     *(*pixel)++ = *pal++;
     *(*pixel)++ = *pal;
-    (*pixel)++;
+    *(*pixel)++ = 255;
 }
 
 /**
