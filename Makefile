@@ -15,6 +15,7 @@ clean:
 	rm -f *.gcda
 	rm -f coverage.*
 	rm -f *.bmp
+	rm -f *.ppm
 
 run:	$(EXENAME)
 	./$(EXENAME)
