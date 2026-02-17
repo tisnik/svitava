@@ -1370,7 +1370,7 @@ int image_export_tga(unsigned int width, unsigned int height,
  * @param width Image width in pixels.
  * @param height Image height in pixels.
  * @param pixels Pointer to pixel buffer containing width*height*4 bytes in RGBA order.
- * @param file_name Destination file path for the TGA output.
+ * @param file_name Destination file path for the PNG output.
  * @returns 0 on success, 1 if `pixels` is NULL, -1 on file open/write/close failure.
  */
 int image_export_png(unsigned int width, unsigned int height,
@@ -1379,11 +1379,14 @@ int image_export_png(unsigned int width, unsigned int height,
     const unsigned char *p = pixels;
     int code = 0;
     int scanline;
-    png_structp png_ptr;
-    png_infop info_ptr;
-    png_bytep row;
+    png_structp png_ptr = NULL;
+    png_infop info_ptr = NULL;
 
-    char *title=NULL;
+    char *title = NULL;
+
+    if (pixels == NULL || file_name == NULL) {
+        return -1;
+    }
 
     /* open file for writing in binary mode */
     fout = fopen(file_name, "wb");
