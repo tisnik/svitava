@@ -2315,6 +2315,82 @@ int render_barnsley_m3(const image_t *image, const unsigned char *palette,
     return OK;
 }
 
+/**
+ * Renders a Barnsley Julia-type fractal variant using a piecewise quadratic
+ * iteration.
+ *
+ * For each pixel, maps coordinates to the complex plane and iterates a
+ * piecewise function:
+ * - If the real part is positive, applies z = z^2 - 1.
+ * - If the real part is non-positive, applies z = z^2 - 1 + c*z, where c = cx +
+ * i*cy. Iteration stops when the magnitude squared exceeds 4 or the maximum
+ * number of iterations is reached. The number of iterations determines the
+ * color index for each pixel.
+ *
+ * @param width Image width in pixels.
+ * @param height Image height in pixels.
+ * @param palette Pointer to the color palette (array of RGB triples).
+ * @param pixels Output pixel buffer (4 bytes per pixel, RGB in first 3 bytes).
+ * @param cx Real part of the Julia parameter c.
+ * @param cy Imaginary part of the Julia parameter c.
+ * @param maxiter Maximum number of iterations per pixel.
+ */
+int render_barnsley_j3(const image_t *image, const unsigned char *palette,
+                        double cx, double cy, int maxiter) {
+    int            x, y;
+    double         zx0, zy0;
+    double         xmin = -2.0, ymin = -2.0, xmax = 2.0, ymax = 2.0;
+    double         step_x;
+    double         step_y;
+    unsigned char *p;
+
+    /* Only properly-created images are accepted */
+    ENSURE_PROPER_IMAGE_STRUCTURE
+    ENSURE_NON_EMPTY_IMAGE
+    ENSURE_PROPER_PALETTE
+
+    /* putpixel() writes 4 bytes per pixel, so only RGBA images are supported */
+    if (image->bpp != RGBA) {
+        return INVALID_IMAGE_TYPE;
+    }
+
+    p = image->pixels;
+    step_x = (xmax - xmin) / image->width;
+    step_y = (ymax - ymin) / image->height;
+
+    zy0 = ymin;
+    for (y = 0; y < image->height; y++) {
+        zx0 = xmin;
+        for (x = 0; x < image->width; x++) {
+            double       zx = zx0;
+            double       zy = zy0;
+            unsigned int i = 0;
+            while (i < maxiter) {
+                double zx2 = zx * zx;
+                double zy2 = zy * zy;
+                double zxn, zyn;
+                if (zx2 + zy2 > 4.0) {
+                    break;
+                }
+                if (zx > 0) {
+                    zxn = zx2 - zy2 - 1;
+                    zyn = 2.0 * zx * zy;
+                } else {
+                    zxn = zx2 - zy2 - 1 + cx * zx;
+                    zyn = 2.0 * zx * zy + cy * zx;
+                }
+                zx = zxn;
+                zy = zyn;
+                i++;
+            }
+            putpixel(&p, palette, i % 256);
+            zx0 += step_x;
+        }
+        zy0 += step_y;
+    }
+    return OK;
+}
+
 #ifndef NO_MAIN
 int main(int argc, char **argv) {
 #define WIDTH 512
@@ -2378,7 +2454,6 @@ int main(int argc, char **argv) {
     render_barnsley_j2(&image, palette, 1.109375, 0.421875, 1000);
     image_export_ppm_binary(WIDTH, HEIGHT, image.pixels, "barnsley_j2.ppm");
 
-    /*
     image_clear(&image);
     render_barnsley_m3(&image, palette, 0, 0, 1000);
     image_export_ppm_binary(WIDTH, HEIGHT, image.pixels, "barnsley_m3.ppm");
@@ -2386,7 +2461,7 @@ int main(int argc, char **argv) {
     image_clear(&image);
     render_barnsley_j3(&image, palette, -0.09375, 0.453125, 1000);
     image_export_ppm_binary(WIDTH, HEIGHT, image.pixels, "barnsley_j3.ppm");
-*/
+
     return 0;
 }
 #endif
