@@ -2180,6 +2180,71 @@ int render_barnsley_m2(const image_t *image, const unsigned char *palette,
 }
 
 /**
+ * Renders a Barnsley Julia set fractal variant using a piecewise complex
+ * function.
+ *
+ * For each pixel, maps its coordinates to the complex plane and iterates a
+ * piecewise function based on the sign of a linear combination of zx and zy,
+ * with parameters cx and cy. Colors are assigned from the palette based on the
+ * number of iterations before escape or reaching maxiter.
+ */
+int render_barnsley_j2(const image_t *image, const unsigned char *palette,
+                        double cx, double cy, int maxiter) {
+    int            x, y;
+    double         zx0, zy0;
+    double         xmin = -2.0, ymin = -2.0, xmax = 2.0, ymax = 2.0;
+    double         step_x;
+    double         step_y;
+    unsigned char *p;
+
+    /* Only properly-created images are accepted */
+    ENSURE_PROPER_IMAGE_STRUCTURE
+    ENSURE_NON_EMPTY_IMAGE
+    ENSURE_PROPER_PALETTE
+
+    /* putpixel() writes 4 bytes per pixel, so only RGBA images are supported */
+    if (image->bpp != RGBA) {
+        return INVALID_IMAGE_TYPE;
+    }
+
+    p = image->pixels;
+    step_x = (xmax - xmin) / image->width;
+    step_y = (ymax - ymin) / image->height;
+
+    zy0 = ymin;
+    for (y = 0; y < image->height; y++) {
+        zx0 = xmin;
+        for (x = 0; x < image->width; x++) {
+            double       zx = zx0;
+            double       zy = zy0;
+            unsigned int i = 0;
+            while (i < maxiter) {
+                double zx2 = zx * zx;
+                double zy2 = zy * zy;
+                double zxn, zyn;
+                if (zx2 + zy2 > 4.0) {
+                    break;
+                }
+                if (zx * cy + zy * cx >= 0) {
+                    zxn = zx * cx - zy * cy - cx;
+                    zyn = zx * cy + zy * cx - cy;
+                } else {
+                    zxn = zx * cx - zy * cy + cx;
+                    zyn = zx * cy + zy * cx + cy;
+                }
+                zx = zxn;
+                zy = zyn;
+                i++;
+            }
+            putpixel(&p, palette, i % 256);
+            zx0 += step_x;
+        }
+        zy0 += step_y;
+    }
+    return OK;
+}
+
+/**
  * Renders the Barnsley Mandelbrot-type fractal (variant m3) into a pixel buffer.
  *
  * Iterates a piecewise quadratic function over the complex plane for each
@@ -2305,7 +2370,6 @@ int main(int argc, char **argv) {
     render_barnsley_j1(&image, palette, 0.4, 1.5, 1000);
     image_export_ppm_binary(WIDTH, HEIGHT, image.pixels, "barnsley_j1.ppm");
 
-    /*
     image_clear(&image);
     render_barnsley_m2(&image, palette, 0, 0, 1000);
     image_export_ppm_binary(WIDTH, HEIGHT, image.pixels, "barnsley_m2.ppm");
@@ -2314,13 +2378,14 @@ int main(int argc, char **argv) {
     render_barnsley_j2(&image, palette, 1.109375, 0.421875, 1000);
     image_export_ppm_binary(WIDTH, HEIGHT, image.pixels, "barnsley_j2.ppm");
 
+    /*
     image_clear(&image);
     render_barnsley_m3(&image, palette, 0, 0, 1000);
     image_export_ppm_binary(WIDTH, HEIGHT, image.pixels, "barnsley_m3.ppm");
 
     image_clear(&image);
     render_barnsley_j3(&image, palette, -0.09375, 0.453125, 1000);
-    image_export_ppm_binary(WIDTH, HEIGHT, image.pixels, "barnsley_j2.ppm");
+    image_export_ppm_binary(WIDTH, HEIGHT, image.pixels, "barnsley_j3.ppm");
 */
     return 0;
 }
