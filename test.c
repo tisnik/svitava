@@ -2,6 +2,7 @@
  * Unit tests for functions defined in svitava.c
  */
 
+#include <string.h>
 #include <assert.h>
 
 #include "svitava.c"
@@ -555,6 +556,11 @@ void test_image_putpixel_max_rgba_image(void) {
     assert(result == OK);
     assert(memcmp((void *)expected, (void *)image.pixels, 4) == 0);
 
+    /* writing lower values must not overwrite previous values */
+    result = image_putpixel_max(&image, 0, 0, 0, 0, 0, 4);
+    assert(result == OK);
+    assert(memcmp((void *)expected, (void *)image.pixels, 4) == 0);
+
     free(image.pixels);
     TEST_END
 }
@@ -1083,19 +1089,19 @@ void test_image_vline_negative_coordinates(void) {
     assert(image.pixels != NULL);
     image_clear(&image);
 
-    /* x1 is negative */
+    /* x is negative */
     result = image_vline(&image, -1, 0, 0, 0, 0, 0, 0);
     assert(result == INVALID_COORDINATES);
 
-    /* x2 is negative */
+    /* y1 is negative */
     result = image_vline(&image, 0, -1, 0, 0, 0, 0, 0);
     assert(result == INVALID_COORDINATES);
 
-    /* x1 and x2 are negative */
+    /* x and y1 are negative */
     result = image_vline(&image, -1, -1, 0, 0, 0, 0, 0);
     assert(result == INVALID_COORDINATES);
 
-    /* y is negative */
+    /* y2 is negative */
     result = image_vline(&image, 0, 0, -1, 0, 0, 0, 0);
     assert(result == INVALID_COORDINATES);
 
@@ -1127,19 +1133,19 @@ void test_image_vline_coordinates_outside_range(void) {
     image = image_create(100, 100, GRAYSCALE);
     assert(image.pixels != NULL);
 
-    /* x1 is too large */
+    /* x is too large */
     result = image_vline(&image, 100 + 1, 1, 0, 0, 0, 0, 0);
     assert(result == INVALID_COORDINATES);
 
-    /* x2 is too large */
+    /* y1 is too large */
     result = image_vline(&image, 0, 100 + 1, 0, 0, 0, 0, 0);
     assert(result == INVALID_COORDINATES);
 
-    /* x1 and x2 are too large */
+    /* x and y1 are too large */
     result = image_vline(&image, 100 + 1, 100 + 1, 0, 0, 0, 0, 0);
     assert(result == INVALID_COORDINATES);
 
-    /* y is too large */
+    /* y2 is too large */
     result = image_vline(&image, 1, 2, 100 + 1, 0, 0, 0, 0);
     assert(result == INVALID_COORDINATES);
 
