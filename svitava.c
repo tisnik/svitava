@@ -2399,13 +2399,18 @@ int main(int argc, char **argv) {
     image_t        image = image_create(WIDTH, HEIGHT, RGBA);
     int            i;
 
+    if (palette == NULL || image.pixels == NULL) {
+        free(palette);
+        free(image.pixels);
+        return 1;
+    }
+
     for (i = 0; i <= 255; i++) {
         palette[i * 3] = i * 2;
         palette[i * 3 + 1] = i * 3;
         palette[i * 3 + 2] = i * 5;
     }
 
-    /*
     image_clear(&image);
     render_test_rgb_image(&image, palette, 128);
     image_export_bmp(WIDTH, HEIGHT, image.pixels, "test_rgb.bmp");
@@ -2437,7 +2442,7 @@ int main(int argc, char **argv) {
     image_clear(&image);
     render_julia_4(&image, palette, 0.375, -0.97265625, 1000);
     image_export_ppm_binary(WIDTH, HEIGHT, image.pixels, "julia_4.ppm");
-*/
+
     image_clear(&image);
     render_barnsley_m1(&image, palette, 0, 0, 1000);
     image_export_ppm_binary(WIDTH, HEIGHT, image.pixels, "barnsley_m1.ppm");
@@ -2462,6 +2467,8 @@ int main(int argc, char **argv) {
     render_barnsley_j3(&image, palette, -0.09375, 0.453125, 1000);
     image_export_ppm_binary(WIDTH, HEIGHT, image.pixels, "barnsley_j3.ppm");
 
+    free(image.pixels);
+    free(palette);
     return 0;
 }
 #endif
