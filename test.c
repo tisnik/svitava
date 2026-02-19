@@ -561,6 +561,12 @@ void test_image_putpixel_max_rgba_image(void) {
     assert(result == OK);
     assert(memcmp((void *)expected, (void *)image.pixels, 4) == 0);
 
+    /* alpha is always overwritten by image_putpixel_max regardless of value */
+    unsigned char expected_lower_alpha[4] = {1, 2, 3, 0};
+    result = image_putpixel_max(&image, 0, 0, 0, 0, 0, 0);
+    assert(result == OK);
+    assert(memcmp((void *)expected_lower_alpha, (void *)image.pixels, 4) == 0);
+
     free(image.pixels);
     TEST_END
 }
