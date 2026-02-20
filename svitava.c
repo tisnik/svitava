@@ -73,6 +73,7 @@ render_julia_3
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 
 #ifdef SUPPORT_PNG
 #include <png.h>
@@ -114,6 +115,27 @@ enum error {
     INVALID_IMAGE_TYPE,
     INVALID_COORDINATES
 };
+
+/* All functions that implement fractal renderer must be of this type. */
+typedef int t_renderer(const image_t       *image,
+                        const unsigned char *palette,
+                        double               px,
+                        double               py,
+                        int                  maxiter);
+
+/* All parameters passed to renderer as one structure. It allow us to simply run
+ * the renderer in a separate thread. */
+typedef struct {
+    char          *name;
+    char          *filename;
+    t_renderer    *renderer;
+    unsigned char *palette;
+    unsigned int   width;
+    unsigned int   height;
+    double         px;
+    double         py;
+    int            maxiter;
+} renderer_parameters_t;
 
 /* Helper macros */
 #define ENSURE_PROPER_IMAGE_STRUCTURE   \
@@ -2391,17 +2413,61 @@ int render_barnsley_j3(const image_t *image, const unsigned char *palette,
     return OK;
 }
 
+/*
+ * Calculates the selected fractal and save it to disk.
+ */
+void *render_and_save(void *void_parameters) {
+    int                    write_result;
+    int                    render_result;
+    renderer_parameters_t *renderer_parameters = void_parameters;
+    image_t                image = image_create(renderer_parameters->width, renderer_parameters->height, RGBA);
+
+    if (image.pixels == NULL) {
+        puts("Memory allocation error!");
+        return NULL;
+    }
+
+    printf("Rendering %s started\n", renderer_parameters->name);
+
+    render_result = renderer_parameters->renderer(
+        &image,
+        renderer_parameters->palette,
+        renderer_parameters->px,
+        renderer_parameters->py,
+        renderer_parameters->maxiter);
+
+    if (render_result != OK) {
+        fprintf(stderr, "Renderer for %s failed with error %d\n",
+                renderer_parameters->name, render_result);
+        free(image.pixels);
+        return NULL;
+    }
+
+    write_result = image_export_bmp(renderer_parameters->width,
+                             renderer_parameters->height,
+                             image.pixels,
+                             renderer_parameters->filename);
+    if (write_result != 0) {
+        fprintf(stderr, "Failed to write %s\n", renderer_parameters->filename);
+    }
+
+    free(image.pixels);
+    printf("Rendering %s finished\n", renderer_parameters->name);
+    return NULL;
+}
+
 #ifndef NO_MAIN
 int main(int argc, char **argv) {
 #define WIDTH 512
 #define HEIGHT 512
     unsigned char *palette = (unsigned char *)malloc(256 * 3);
-    image_t        image = image_create(WIDTH, HEIGHT, RGBA);
+    int            max_threads;
+    int            threads_created = 0;
+    pthread_t     *threads;
     int            i;
 
-    if (palette == NULL || image.pixels == NULL) {
+    if (palette == NULL) {
         free(palette);
-        free(image.pixels);
         return 1;
     }
 
@@ -2411,63 +2477,55 @@ int main(int argc, char **argv) {
         palette[i * 3 + 2] = i * 5;
     }
 
-    image_clear(&image);
-    render_test_rgb_image(&image, palette, 128);
-    image_export_bmp(WIDTH, HEIGHT, image.pixels, "test_rgb.bmp");
+    /* NOTE: parameters array must remain valid until all threads complete.
+       Do not return from this function until pthread_join completes for all threads. */
+    renderer_parameters_t parameters[] = {
+        {"Classic Mandelbrot", "mandelbrot.bmp",        render_mandelbrot,        palette, WIDTH, HEIGHT, 0.0, 0.0, 1000},
+        {"Classic Julia",      "julia.bmp",             render_julia,             palette, WIDTH, HEIGHT, -0.207190825000000012496, 0.676656624999999999983, 1000},
+        {"Mandelbrot z=z^3+c", "mandelbrot_3.bmp",      render_mandelbrot_3,      palette, WIDTH, HEIGHT, 0.0, 0.0, 1000},
+        {"Julia z=z^3+c",      "julia_3.bmp",           render_julia_3,           palette, WIDTH, HEIGHT, 0.12890625, -0.796875, 1000},
+        {"Mandelbrot z=z^4+c", "mandelbrot_4.bmp",      render_mandelbrot_4,      palette, WIDTH, HEIGHT, 0.0, 0.0, 1000},
+        {"Julia z=z^4+c",      "julia_4.bmp",           render_julia_4,           palette, WIDTH, HEIGHT, 0.375, -0.97265625, 1000},
+        {"Barnsley M1",        "barnsley_m1.bmp",       render_barnsley_m1,       palette, WIDTH, HEIGHT, 0.0, 0.0, 1000},
+        {"Barnsley J1",        "barnsley_j1.bmp",       render_barnsley_j1,       palette, WIDTH, HEIGHT, 0.4, 1.5, 1000},
+        {"Barnsley M2",        "barnsley_m2.bmp",       render_barnsley_m2,       palette, WIDTH, HEIGHT, 0.0, 0.0, 1000},
+        {"Barnsley J2",        "barnsley_j2.bmp",       render_barnsley_j2,       palette, WIDTH, HEIGHT, 1.109375, 0.421875, 1000},
+        {"Barnsley M3",        "barnsley_m3.bmp",       render_barnsley_m3,       palette, WIDTH, HEIGHT, 0.0, 0.0, 1000},
+        {"Barnsley J3",        "barnsley_j3.bmp",       render_barnsley_j3,       palette, WIDTH, HEIGHT, -0.09375, 0.453125, 1000},
+    };
 
-    image_clear(&image);
-    render_test_palette_image(&image, palette);
-    image_export_bmp(WIDTH, HEIGHT, image.pixels, "test_palette.bmp");
+    max_threads = sizeof(parameters) / sizeof(renderer_parameters_t);
+    threads = (pthread_t *)malloc(max_threads * sizeof(pthread_t));
+    if (threads == NULL) {
+        fprintf(stderr, "Failed to allocate threads array\n");
+        free(palette);
+        return 1;
+    }
 
-    image_clear(&image);
-    render_mandelbrot(&image, palette, 0.0, 0.0, 255);
-    image_export_bmp(WIDTH, HEIGHT, image.pixels, "mandelbrot.bmp");
+    for (i = 0; i < max_threads; i++) {
+        int rc = pthread_create(&threads[i], NULL, render_and_save,
+                                &parameters[i]);
+        if (rc != 0) {
+            fprintf(stderr, "Failed to create thread %d (error %d)\n", i, rc);
+            threads[i] = 0;
+        } else {
+            threads_created++;
+        }
+    }
 
-    image_clear(&image);
-    render_julia(&image, palette, -0.207190825000000012496, 0.676656624999999999983, 255);
-    image_export_bmp(WIDTH, HEIGHT, image.pixels, "julia.bmp");
+    printf("%d of %d threads created.\n", threads_created, max_threads);
 
-    image_clear(&image);
-    render_mandelbrot_3(&image, palette, 0.0, 0.0, 255);
-    image_export_bmp(WIDTH, HEIGHT, image.pixels, "mandelbrot_3.bmp");
+    /* wait for each thread to complete */
+    for (i = 0; i < max_threads; i++) {
+        if (threads[i] != 0) {
+            int result_code = pthread_join(threads[i], NULL);
+            printf("Thread %d has ended with result code %d\n", i, result_code);
+        }
+    }
 
-    image_clear(&image);
-    render_julia_3(&image, palette, 0.12890625, -0.796875, 1000);
-    image_export_bmp(WIDTH, HEIGHT, image.pixels, "julia_3.bmp");
+    printf("Main program has ended.\n");
 
-    image_clear(&image);
-    render_mandelbrot_4(&image, palette, 0.0, 0.0, 255);
-    image_export_bmp(WIDTH, HEIGHT, image.pixels, "mandelbrot_4.bmp");
-
-    image_clear(&image);
-    render_julia_4(&image, palette, 0.375, -0.97265625, 1000);
-    image_export_ppm_binary(WIDTH, HEIGHT, image.pixels, "julia_4.ppm");
-
-    image_clear(&image);
-    render_barnsley_m1(&image, palette, 0, 0, 1000);
-    image_export_ppm_binary(WIDTH, HEIGHT, image.pixels, "barnsley_m1.ppm");
-
-    image_clear(&image);
-    render_barnsley_j1(&image, palette, 0.4, 1.5, 1000);
-    image_export_ppm_binary(WIDTH, HEIGHT, image.pixels, "barnsley_j1.ppm");
-
-    image_clear(&image);
-    render_barnsley_m2(&image, palette, 0, 0, 1000);
-    image_export_ppm_binary(WIDTH, HEIGHT, image.pixels, "barnsley_m2.ppm");
-
-    image_clear(&image);
-    render_barnsley_j2(&image, palette, 1.109375, 0.421875, 1000);
-    image_export_ppm_binary(WIDTH, HEIGHT, image.pixels, "barnsley_j2.ppm");
-
-    image_clear(&image);
-    render_barnsley_m3(&image, palette, 0, 0, 1000);
-    image_export_ppm_binary(WIDTH, HEIGHT, image.pixels, "barnsley_m3.ppm");
-
-    image_clear(&image);
-    render_barnsley_j3(&image, palette, -0.09375, 0.453125, 1000);
-    image_export_ppm_binary(WIDTH, HEIGHT, image.pixels, "barnsley_j3.ppm");
-
-    free(image.pixels);
+    free(threads);
     free(palette);
     return 0;
 }
