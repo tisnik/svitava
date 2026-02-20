@@ -130,8 +130,8 @@ typedef struct {
     char          *filename;
     t_renderer    *renderer;
     unsigned char *palette;
-    int            width;
-    int            height;
+    unsigned int   width;
+    unsigned int   height;
     double         px;
     double         py;
     int            maxiter;
@@ -2411,6 +2411,39 @@ int render_barnsley_j3(const image_t *image, const unsigned char *palette,
         zy0 += step_y;
     }
     return OK;
+}
+
+/*
+ * Calculates the selected fractal and save it info disk.
+ */
+void *render_and_save(void *void_parameters) {
+    int                    write_result;
+    renderer_parameters_t *renderer_parameters = void_parameters;
+    image_t                image = image_create(renderer_parameters->width, renderer_parameters->height, RGBA);
+
+    printf("Rendering %s started\n", renderer_parameters->name);
+    if (image.pixels == NULL) {
+        puts("Memory allocation error!");
+        return NULL;
+    }
+
+    renderer_parameters->renderer(
+        &image,
+        renderer_parameters->palette,
+        renderer_parameters->px,
+        renderer_parameters->py,
+        renderer_parameters->maxiter);
+    write_result = image_export_bmp(renderer_parameters->width,
+                             renderer_parameters->height,
+                             image.pixels,
+                             renderer_parameters->filename);
+    if (write_result != 0) {
+        fprintf(stderr, "Failed to write %s\n", renderer_parameters->filename);
+    }
+
+    free(image.pixels);
+    printf("Rendering %s finished\n", renderer_parameters->name);
+    return NULL;
 }
 
 #ifndef NO_MAIN
