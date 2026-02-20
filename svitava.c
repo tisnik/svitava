@@ -2502,21 +2502,27 @@ int main(int argc, char **argv) {
     }
 
     for (i = 0; i < max_threads; i++) {
-        pthread_create(&threads[i], NULL, render_and_save,
-                       &parameters[i]);
+        int rc = pthread_create(&threads[i], NULL, render_and_save,
+                                &parameters[i]);
+        if (rc != 0) {
+            fprintf(stderr, "Failed to create thread %d (error %d)\n", i, rc);
+            threads[i] = 0;
+        }
     }
 
     printf("All threads are created.\n");
 
     /* wait for each thread to complete */
     for (i = 0; i < max_threads; i++) {
-        int result_code;
-        result_code = pthread_join(threads[i], NULL);
-        printf("Thread %d has ended with result code %d\n", i, result_code);
+        if (threads[i] != 0) {
+            int result_code = pthread_join(threads[i], NULL);
+            printf("Thread %d has ended with result code %d\n", i, result_code);
+        }
     }
 
     printf("Main program has ended.\n");
 
+    free(threads);
     free(palette);
     return 0;
 }
