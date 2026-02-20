@@ -117,18 +117,18 @@ enum error {
 };
 
 /* All functions that implement fractal renderer must be of this type. */
-typedef int t_renderer(const image_t       *image,
-                        const unsigned char *palette,
-                        double               px,
-                        double               py,
-                        int                  maxiter);
+typedef int (*t_renderer)(const image_t       *image,
+                       const unsigned char *palette,
+                       double               px,
+                       double               py,
+                       int                  maxiter);
 
 /* All parameters passed to renderer as one structure. It allow us to simply run
  * the renderer in a separate thread. */
 typedef struct {
-    char          *name;
-    char          *filename;
-    t_renderer    *renderer;
+    const char    *name;
+    const char    *filename;
+    t_renderer     renderer;
     unsigned char *palette;
     unsigned int   width;
     unsigned int   height;
