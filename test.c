@@ -1513,6 +1513,782 @@ void test_image_line_rgb_image_2x2(void) {
 }
 
 /**
+ * Test that image_line_aa returns NULL_IMAGE_POINTER when given a NULL image.
+ */
+void test_image_line_aa_null_image(void) {
+    TEST_BEGIN
+    int result = image_line_aa(NULL, 0, 0, 10, 10, 255, 255, 255, 255);
+    assert(result == NULL_IMAGE_POINTER);
+    TEST_END
+}
+
+/**
+ * Test that image_line_aa returns NULL_PIXELS_POINTER when image has no pixels.
+ */
+void test_image_line_aa_image_without_pixels(void) {
+    TEST_BEGIN
+    image_t image;
+    image.width = 100;
+    image.height = 100;
+    image.bpp = RGBA;
+    image.pixels = NULL;
+
+    int result = image_line_aa(&image, 0, 0, 10, 10, 255, 255, 255, 255);
+    assert(result == NULL_PIXELS_POINTER);
+    TEST_END
+}
+
+/**
+ * Test that image_line_aa returns INVALID_IMAGE_TYPE for non-RGBA images.
+ */
+void test_image_line_aa_invalid_image_type(void) {
+    TEST_BEGIN
+    image_t image = image_create(100, 100, RGB);
+    assert(image.pixels != NULL);
+
+    int result = image_line_aa(&image, 0, 0, 10, 10, 255, 255, 255, 255);
+    assert(result == INVALID_IMAGE_TYPE);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test that image_line_aa handles vertical lines correctly (delegates to image_vline).
+ */
+void test_image_line_aa_vertical_line(void) {
+    TEST_BEGIN
+    image_t image = image_create(10, 10, RGBA);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    int result = image_line_aa(&image, 5, 2, 5, 8, 255, 128, 64, 255);
+    assert(result == OK);
+
+    /* Verify some pixels are set along the vertical line */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 5, 5, &r, &g, &b, &a);
+    assert(r == 255 && g == 128 && b == 64);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test that image_line_aa handles horizontal lines correctly (delegates to image_hline).
+ */
+void test_image_line_aa_horizontal_line(void) {
+    TEST_BEGIN
+    image_t image = image_create(10, 10, RGBA);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    int result = image_line_aa(&image, 2, 5, 8, 5, 255, 128, 64, 255);
+    assert(result == OK);
+
+    /* Verify some pixels are set along the horizontal line */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 5, 5, &r, &g, &b, &a);
+    assert(r == 255 && g == 128 && b == 64);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test that image_line_aa draws diagonal lines with anti-aliasing.
+ */
+void test_image_line_aa_diagonal_line(void) {
+    TEST_BEGIN
+    image_t image = image_create(20, 20, RGBA);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    int result = image_line_aa(&image, 2, 2, 18, 18, 255, 0, 0, 255);
+    assert(result == OK);
+
+    /* Verify that the main diagonal has red pixels */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 10, 10, &r, &g, &b, &a);
+    assert(r > 0); /* Should have some red component */
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test filter_smooth_3x3_block with NULL image.
+ */
+void test_filter_smooth_3x3_block_null_image(void) {
+    TEST_BEGIN
+    /* Should not crash */
+    filter_smooth_3x3_block(NULL);
+    TEST_END
+}
+
+/**
+ * Test filter_smooth_3x3_block with image without pixels.
+ */
+void test_filter_smooth_3x3_block_image_without_pixels(void) {
+    TEST_BEGIN
+    image_t image;
+    image.width = 10;
+    image.height = 10;
+    image.bpp = RGB;
+    image.pixels = NULL;
+
+    /* Should not crash */
+    filter_smooth_3x3_block(&image);
+    TEST_END
+}
+
+/**
+ * Test filter_smooth_3x3_block on a small RGB image.
+ */
+void test_filter_smooth_3x3_block_rgb_image(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGB);
+    assert(image.pixels != NULL);
+
+    /* Set center pixel to white, surrounded by black */
+    image_clear(&image);
+    image_putpixel(&image, 2, 2, 255, 255, 255, 255);
+
+    filter_smooth_3x3_block(&image);
+
+    /* Center pixel should be smoothed (average of 1 white + 8 black = ~28) */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 2, 2, &r, &g, &b, &a);
+    assert(r == 28 && g == 28 && b == 28);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test filter_smooth_3x3_gauss on a small RGB image.
+ */
+void test_filter_smooth_3x3_gauss_rgb_image(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGB);
+    assert(image.pixels != NULL);
+
+    /* Set center pixel to white, surrounded by black */
+    image_clear(&image);
+    image_putpixel(&image, 2, 2, 255, 255, 255, 255);
+
+    filter_smooth_3x3_gauss(&image);
+
+    /* Center pixel should be smoothed with Gaussian weights */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 2, 2, &r, &g, &b, &a);
+    assert(r == 63 && g == 63 && b == 63); /* 255*4/16 = 63 */
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test filter_sharpen_3x3 on a small RGB image.
+ */
+void test_filter_sharpen_3x3_rgb_image(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGB);
+    assert(image.pixels != NULL);
+
+    /* Create a simple gradient */
+    image_clear(&image);
+    image_putpixel(&image, 2, 2, 100, 100, 100, 255);
+    image_putpixel(&image, 1, 2, 50, 50, 50, 255);
+    image_putpixel(&image, 3, 2, 50, 50, 50, 255);
+    image_putpixel(&image, 2, 1, 50, 50, 50, 255);
+    image_putpixel(&image, 2, 3, 50, 50, 50, 255);
+
+    filter_sharpen_3x3(&image);
+
+    /* Center pixel should be sharpened: 5*100 + 4*(-50) = 300 */
+    /* Clamped to 255 */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 2, 2, &r, &g, &b, &a);
+    assert(r == 255 && g == 255 && b == 255);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test filter_edge_detection_3x3_1 on a simple edge.
+ */
+void test_filter_edge_detection_3x3_1_rgb_image(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGB);
+    assert(image.pixels != NULL);
+
+    /* Create a vertical edge */
+    image_clear(&image);
+    for (int y = 0; y < 5; y++) {
+        image_putpixel(&image, 1, y, 255, 255, 255, 255);
+        image_putpixel(&image, 3, y, 255, 255, 255, 255);
+    }
+
+    filter_edge_detection_3x3_1(&image);
+
+    /* Edge should be detected at center pixel */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 2, 2, &r, &g, &b, &a);
+    /* Result depends on implementation details */
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test filter_edge_detection_3x3_2 doesn't crash.
+ */
+void test_filter_edge_detection_3x3_2_rgb_image(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGB);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    filter_edge_detection_3x3_2(&image);
+
+    /* Should complete without crashing */
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test filter_edge_detection_3x3_3 doesn't crash.
+ */
+void test_filter_edge_detection_3x3_3_rgb_image(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGB);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    filter_edge_detection_3x3_3(&image);
+
+    /* Should complete without crashing */
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test filter_horizontal_edge_detection_3x3 doesn't crash.
+ */
+void test_filter_horizontal_edge_detection_3x3_rgb_image(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGB);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    filter_horizontal_edge_detection_3x3(&image);
+
+    /* Should complete without crashing */
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test filter_vertical_edge_detection_3x3 doesn't crash.
+ */
+void test_filter_vertical_edge_detection_3x3_rgb_image(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGB);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    filter_vertical_edge_detection_3x3(&image);
+
+    /* Should complete without crashing */
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test filter_horizontal_sobel_operator_3x3 doesn't crash.
+ */
+void test_filter_horizontal_sobel_operator_3x3_rgb_image(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGB);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    filter_horizontal_sobel_operator_3x3(&image);
+
+    /* Should complete without crashing */
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test filter_vertical_sobel_operator_3x3 doesn't crash.
+ */
+void test_filter_vertical_sobel_operator_3x3_rgb_image(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGB);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    filter_vertical_sobel_operator_3x3(&image);
+
+    /* Should complete without crashing */
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test composite_horizontal_interlace with NULL images.
+ */
+void test_composite_horizontal_interlace_null_images(void) {
+    TEST_BEGIN
+    image_t image = image_create(4, 4, RGB);
+    assert(image.pixels != NULL);
+
+    /* Should not crash with NULL inputs */
+    composite_horizontal_interlace(NULL, &image, &image);
+    composite_horizontal_interlace(&image, NULL, &image);
+    composite_horizontal_interlace(&image, &image, NULL);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test composite_horizontal_interlace with images without pixels.
+ */
+void test_composite_horizontal_interlace_images_without_pixels(void) {
+    TEST_BEGIN
+    image_t image1, image2, dest;
+    image1.width = 4;
+    image1.height = 4;
+    image1.bpp = RGB;
+    image1.pixels = NULL;
+    image2 = image1;
+    dest = image1;
+
+    /* Should not crash */
+    composite_horizontal_interlace(&image1, &image2, &dest);
+    TEST_END
+}
+
+/**
+ * Test composite_horizontal_interlace with mismatched dimensions.
+ */
+void test_composite_horizontal_interlace_mismatched_dimensions(void) {
+    TEST_BEGIN
+    image_t image1 = image_create(4, 4, RGB);
+    image_t image2 = image_create(4, 5, RGB);
+    image_t dest = image_create(4, 4, RGB);
+    assert(image1.pixels != NULL && image2.pixels != NULL && dest.pixels != NULL);
+
+    /* Should not crash with mismatched dimensions */
+    composite_horizontal_interlace(&image1, &image2, &dest);
+
+    free(image1.pixels);
+    free(image2.pixels);
+    free(dest.pixels);
+    TEST_END
+}
+
+/**
+ * Test composite_horizontal_interlace with valid inputs.
+ */
+void test_composite_horizontal_interlace_valid(void) {
+    TEST_BEGIN
+    image_t image1 = image_create(4, 4, RGB);
+    image_t image2 = image_create(4, 4, RGB);
+    image_t dest = image_create(4, 4, RGB);
+    assert(image1.pixels != NULL && image2.pixels != NULL && dest.pixels != NULL);
+
+    /* Fill image1 with red, image2 with blue */
+    for (unsigned int y = 0; y < 4; y++) {
+        for (unsigned int x = 0; x < 4; x++) {
+            image_putpixel(&image1, x, y, 255, 0, 0, 255);
+            image_putpixel(&image2, x, y, 0, 0, 255, 255);
+        }
+    }
+
+    composite_horizontal_interlace(&image1, &image2, &dest);
+
+    /* Check interlacing: odd columns should be red, even columns should be blue */
+    unsigned char r, g, b, a;
+    image_getpixel(&dest, 0, 0, &r, &g, &b, &a);
+    assert(r == 0 && g == 0 && b == 255); /* Even column (0) -> image2 */
+    image_getpixel(&dest, 1, 0, &r, &g, &b, &a);
+    assert(r == 255 && g == 0 && b == 0); /* Odd column (1) -> image1 */
+
+    free(image1.pixels);
+    free(image2.pixels);
+    free(dest.pixels);
+    TEST_END
+}
+
+/**
+ * Test composite_vertical_interlace with valid inputs.
+ */
+void test_composite_vertical_interlace_valid(void) {
+    TEST_BEGIN
+    image_t image1 = image_create(4, 4, RGB);
+    image_t image2 = image_create(4, 4, RGB);
+    image_t dest = image_create(4, 4, RGB);
+    assert(image1.pixels != NULL && image2.pixels != NULL && dest.pixels != NULL);
+
+    /* Fill image1 with red, image2 with blue */
+    for (unsigned int y = 0; y < 4; y++) {
+        for (unsigned int x = 0; x < 4; x++) {
+            image_putpixel(&image1, x, y, 255, 0, 0, 255);
+            image_putpixel(&image2, x, y, 0, 0, 255, 255);
+        }
+    }
+
+    composite_vertical_interlace(&image1, &image2, &dest);
+
+    /* Check interlacing: odd rows should be red, even rows should be blue */
+    unsigned char r, g, b, a;
+    image_getpixel(&dest, 0, 0, &r, &g, &b, &a);
+    assert(r == 0 && g == 0 && b == 255); /* Even row (0) -> image2 */
+    image_getpixel(&dest, 0, 1, &r, &g, &b, &a);
+    assert(r == 255 && g == 0 && b == 0); /* Odd row (1) -> image1 */
+
+    free(image1.pixels);
+    free(image2.pixels);
+    free(dest.pixels);
+    TEST_END
+}
+
+/**
+ * Test composite_checkberboard_interlace with valid inputs.
+ */
+void test_composite_checkerboard_interlace_valid(void) {
+    TEST_BEGIN
+    image_t image1 = image_create(4, 4, RGB);
+    image_t image2 = image_create(4, 4, RGB);
+    image_t dest = image_create(4, 4, RGB);
+    assert(image1.pixels != NULL && image2.pixels != NULL && dest.pixels != NULL);
+
+    /* Fill image1 with red, image2 with blue */
+    for (unsigned int y = 0; y < 4; y++) {
+        for (unsigned int x = 0; x < 4; x++) {
+            image_putpixel(&image1, x, y, 255, 0, 0, 255);
+            image_putpixel(&image2, x, y, 0, 0, 255, 255);
+        }
+    }
+
+    composite_checkberboard_interlace(&image1, &image2, &dest);
+
+    /* Check checkerboard pattern: (0,0) should be blue, (1,0) should be red, (0,1) should be red */
+    unsigned char r, g, b, a;
+    image_getpixel(&dest, 0, 0, &r, &g, &b, &a);
+    assert(r == 0 && g == 0 && b == 255); /* (0+0)%2=0 XOR 0%2=0 = 0 -> image2 */
+    image_getpixel(&dest, 1, 0, &r, &g, &b, &a);
+    assert(r == 255 && g == 0 && b == 0); /* (1+0)%2=1 XOR 0%2=0 = 1 -> image1 */
+    image_getpixel(&dest, 0, 1, &r, &g, &b, &a);
+    assert(r == 255 && g == 0 && b == 0); /* (0+1)%2=0 XOR 1%2=1 = 1 -> image1 */
+
+    free(image1.pixels);
+    free(image2.pixels);
+    free(dest.pixels);
+    TEST_END
+}
+
+/**
+ * Test composite_blend with NULL images.
+ */
+void test_composite_blend_null_images(void) {
+    TEST_BEGIN
+    image_t image = image_create(4, 4, RGB);
+    assert(image.pixels != NULL);
+
+    /* Should not crash with NULL inputs */
+    composite_blend(NULL, &image, &image);
+    composite_blend(&image, NULL, &image);
+    composite_blend(&image, &image, NULL);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test composite_blend with valid inputs.
+ */
+void test_composite_blend_valid(void) {
+    TEST_BEGIN
+    image_t image1 = image_create(2, 2, RGB);
+    image_t image2 = image_create(2, 2, RGB);
+    image_t dest = image_create(2, 2, RGB);
+    assert(image1.pixels != NULL && image2.pixels != NULL && dest.pixels != NULL);
+
+    /* Fill image1 with red (255,0,0), image2 with blue (0,0,255) */
+    for (unsigned int y = 0; y < 2; y++) {
+        for (unsigned int x = 0; x < 2; x++) {
+            image_putpixel(&image1, x, y, 255, 0, 0, 255);
+            image_putpixel(&image2, x, y, 0, 0, 255, 255);
+        }
+    }
+
+    composite_blend(&image1, &image2, &dest);
+
+    /* Blended result should be (127, 0, 127) */
+    unsigned char r, g, b, a;
+    image_getpixel(&dest, 0, 0, &r, &g, &b, &a);
+    assert(r == 127 && g == 0 && b == 127);
+
+    free(image1.pixels);
+    free(image2.pixels);
+    free(dest.pixels);
+    TEST_END
+}
+
+/**
+ * Test image_line_aa with coordinates outside bounds (edge case).
+ */
+void test_image_line_aa_out_of_bounds(void) {
+    TEST_BEGIN
+    image_t image = image_create(10, 10, RGBA);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    /* Draw line that goes out of bounds - should return error from putpixel_max */
+    int result = image_line_aa(&image, 0, 0, 20, 20, 255, 0, 0, 255);
+    assert(result == INVALID_COORDINATES);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test that filters preserve border pixels unchanged.
+ */
+void test_filter_preserves_border_pixels(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGB);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    /* Set a border pixel to a specific value */
+    image_putpixel(&image, 0, 0, 123, 45, 67, 255);
+
+    filter_smooth_3x3_block(&image);
+
+    /* Border pixel should remain unchanged (kernel doesn't cover it) */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 0, 0, &r, &g, &b, &a);
+    assert(r == 123 && g == 45 && b == 67);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test image_size with valid image.
+ */
+void test_image_size_valid_image(void) {
+    TEST_BEGIN
+    image_t image = image_create(100, 50, RGB);
+    assert(image.pixels != NULL);
+
+    size_t size = image_size(&image);
+    assert(size == 100 * 50 * 3);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test image_clone copies pixel data correctly.
+ */
+void test_image_clone_copies_pixel_data(void) {
+    TEST_BEGIN
+    image_t image = image_create(10, 10, RGB);
+    assert(image.pixels != NULL);
+
+    /* Set some pixel values */
+    image_putpixel(&image, 5, 5, 111, 222, 133, 255);
+
+    image_t cloned = image_clone(&image);
+    assert(cloned.pixels != NULL);
+
+    /* Verify cloned pixel data matches */
+    unsigned char r, g, b, a;
+    image_getpixel(&cloned, 5, 5, &r, &g, &b, &a);
+    assert(r == 111 && g == 222 && b == 133);
+
+    /* Verify buffers are independent */
+    assert(image.pixels != cloned.pixels);
+
+    free(image.pixels);
+    free(cloned.pixels);
+    TEST_END
+}
+
+/**
+ * Test image_hline with swapped x coordinates (x1 > x2).
+ */
+void test_image_hline_swapped_coordinates(void) {
+    TEST_BEGIN
+    image_t image = image_create(10, 10, RGB);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    /* Draw horizontal line with x1 > x2 */
+    int result = image_hline(&image, 8, 2, 5, 255, 128, 64, 255);
+    assert(result == OK);
+
+    /* Verify pixels are set along the line */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 5, 5, &r, &g, &b, &a);
+    assert(r == 255 && g == 128 && b == 64);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test image_vline with swapped y coordinates (y1 > y2).
+ */
+void test_image_vline_swapped_coordinates(void) {
+    TEST_BEGIN
+    image_t image = image_create(10, 10, RGB);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    /* Draw vertical line with y1 > y2 */
+    int result = image_vline(&image, 5, 8, 2, 255, 128, 64, 255);
+    assert(result == OK);
+
+    /* Verify pixels are set along the line */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 5, 5, &r, &g, &b, &a);
+    assert(r == 255 && g == 128 && b == 64);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test filter on RGBA image to ensure alpha channel handling.
+ */
+void test_filter_smooth_3x3_block_rgba_image(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGBA);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    /* Set center pixel with specific alpha */
+    image_putpixel(&image, 2, 2, 255, 255, 255, 128);
+
+    filter_smooth_3x3_block(&image);
+
+    /* Verify filter was applied and alpha is set to 255 (opaque) */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 2, 2, &r, &g, &b, &a);
+    assert(a == 255); /* Filters set alpha to 255 */
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test filter on grayscale image.
+ */
+void test_filter_smooth_3x3_block_grayscale_image(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, GRAYSCALE);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    /* Set center pixel to white */
+    image_putpixel(&image, 2, 2, 255, 255, 255, 255);
+
+    filter_smooth_3x3_block(&image);
+
+    /* Center pixel should be smoothed */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 2, 2, &r, &g, &b, &a);
+    assert(r == 28); /* (255*1 + 0*8) / 9 = 28 */
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test composite operations preserve alpha channel in RGBA images.
+ */
+void test_composite_horizontal_interlace_rgba(void) {
+    TEST_BEGIN
+    image_t image1 = image_create(4, 4, RGBA);
+    image_t image2 = image_create(4, 4, RGBA);
+    image_t dest = image_create(4, 4, RGBA);
+    assert(image1.pixels != NULL && image2.pixels != NULL && dest.pixels != NULL);
+
+    /* Fill with different alpha values */
+    for (unsigned int y = 0; y < 4; y++) {
+        for (unsigned int x = 0; x < 4; x++) {
+            image_putpixel(&image1, x, y, 255, 0, 0, 200);
+            image_putpixel(&image2, x, y, 0, 0, 255, 100);
+        }
+    }
+
+    composite_horizontal_interlace(&image1, &image2, &dest);
+
+    /* Verify alpha is preserved */
+    unsigned char r, g, b, a;
+    image_getpixel(&dest, 0, 0, &r, &g, &b, &a);
+    assert(a == 100); /* Even column -> image2 */
+    image_getpixel(&dest, 1, 0, &r, &g, &b, &a);
+    assert(a == 200); /* Odd column -> image1 */
+
+    free(image1.pixels);
+    free(image2.pixels);
+    free(dest.pixels);
+    TEST_END
+}
+
+/**
+ * Test image_line with single pixel (start == end).
+ */
+void test_image_line_single_pixel(void) {
+    TEST_BEGIN
+    image_t image = image_create(10, 10, RGB);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    /* Draw a "line" of a single pixel */
+    int result = image_line(&image, 5, 5, 5, 5, 255, 128, 64, 255);
+    assert(result == OK);
+
+    /* Verify the pixel is set */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 5, 5, &r, &g, &b, &a);
+    assert(r == 255 && g == 128 && b == 64);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test image_create with maximum valid dimensions.
+ */
+void test_image_create_max_dimensions(void) {
+    TEST_BEGIN
+    image_t image = image_create(MAX_WIDTH, MAX_HEIGHT, GRAYSCALE);
+    /* May or may not succeed depending on available memory */
+    /* Just verify it doesn't crash and returns a valid structure */
+    if (image.pixels != NULL) {
+        assert(image.width == MAX_WIDTH);
+        assert(image.height == MAX_HEIGHT);
+        free(image.pixels);
+    } else {
+        /* Out of memory is acceptable for such large allocation */
+        assert(image.width == 0);
+        assert(image.height == 0);
+    }
+    TEST_END
+}
+
+/**
  * Run the complete image processing test suite in a deterministic order.
  *
  * Executes all unit tests covering image size, creation, cloning, clearing,
@@ -1525,6 +2301,7 @@ void test_image_line_rgb_image_2x2(void) {
 int main(void) {
     /* tests for function image_size() */
     test_image_size_null_image();
+    test_image_size_valid_image();
 
     /* tests for function image_create() */
     test_image_create_zero_width();
@@ -1535,12 +2312,14 @@ int main(void) {
     test_image_create_grayscale();
     test_image_create_rgb();
     test_image_create_rgba();
+    test_image_create_max_dimensions();
 
     /* tests for function image_clone() */
     test_image_clone_null_image();
     test_image_clone_image_without_pixels();
     test_image_clone_proper_image();
     test_image_clone_large_image();
+    test_image_clone_copies_pixel_data();
 
     /* tests for function image_clear() */
     test_image_clear_null_image();
@@ -1586,6 +2365,7 @@ int main(void) {
     test_image_hline_rgba_image_2x2();
     test_image_hline_grayscale_image_1x1();
     test_image_hline_grayscale_image_2x2();
+    test_image_hline_swapped_coordinates();
 
     /* tests for function image_vline */
     test_image_vline_null_image();
@@ -1598,6 +2378,7 @@ int main(void) {
     test_image_vline_rgba_image_2x2();
     test_image_vline_grayscale_image_1x1();
     test_image_vline_grayscale_image_2x2();
+    test_image_vline_swapped_coordinates();
 
     /* tests for function image_line */
     test_image_line_null_image();
@@ -1606,6 +2387,44 @@ int main(void) {
     test_image_line_coordinates_outside_range();
     test_image_line_rgb_image_1x1();
     test_image_line_rgb_image_2x2();
+    test_image_line_single_pixel();
+
+    /* tests for function image_line_aa */
+    test_image_line_aa_null_image();
+    test_image_line_aa_image_without_pixels();
+    test_image_line_aa_invalid_image_type();
+    test_image_line_aa_vertical_line();
+    test_image_line_aa_horizontal_line();
+    test_image_line_aa_diagonal_line();
+    test_image_line_aa_out_of_bounds();
+
+    /* tests for filter functions */
+    test_filter_smooth_3x3_block_null_image();
+    test_filter_smooth_3x3_block_image_without_pixels();
+    test_filter_smooth_3x3_block_rgb_image();
+    test_filter_smooth_3x3_block_rgba_image();
+    test_filter_smooth_3x3_block_grayscale_image();
+    test_filter_smooth_3x3_gauss_rgb_image();
+    test_filter_sharpen_3x3_rgb_image();
+    test_filter_edge_detection_3x3_1_rgb_image();
+    test_filter_edge_detection_3x3_2_rgb_image();
+    test_filter_edge_detection_3x3_3_rgb_image();
+    test_filter_horizontal_edge_detection_3x3_rgb_image();
+    test_filter_vertical_edge_detection_3x3_rgb_image();
+    test_filter_horizontal_sobel_operator_3x3_rgb_image();
+    test_filter_vertical_sobel_operator_3x3_rgb_image();
+    test_filter_preserves_border_pixels();
+
+    /* tests for composite functions */
+    test_composite_horizontal_interlace_null_images();
+    test_composite_horizontal_interlace_images_without_pixels();
+    test_composite_horizontal_interlace_mismatched_dimensions();
+    test_composite_horizontal_interlace_valid();
+    test_composite_horizontal_interlace_rgba();
+    test_composite_vertical_interlace_valid();
+    test_composite_checkerboard_interlace_valid();
+    test_composite_blend_null_images();
+    test_composite_blend_valid();
 
     return 0;
 }
