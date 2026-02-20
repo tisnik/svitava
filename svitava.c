@@ -73,6 +73,7 @@ render_julia_3
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 
 #ifdef SUPPORT_PNG
 #include <png.h>
@@ -114,6 +115,27 @@ enum error {
     INVALID_IMAGE_TYPE,
     INVALID_COORDINATES
 };
+
+/* All functions that implement fractal renderer must be of this type. */
+typedef int t_renderer(const image_t       *image,
+                        const unsigned char *palette,
+                        double               px,
+                        double               py,
+                        int                  maxiter);
+
+/* All parameters passed to renderer as one structure. It allow us to simply run
+ * the renderer in a separate thread. */
+typedef struct {
+    char          *name;
+    char          *filename;
+    t_renderer    *renderer;
+    unsigned char *palette;
+    int            width;
+    int            height;
+    double         px;
+    double         py;
+    int            maxiter;
+} renderer_parameters_t;
 
 /* Helper macros */
 #define ENSURE_PROPER_IMAGE_STRUCTURE   \
