@@ -1239,7 +1239,7 @@ int image_export_ppm_binary(unsigned int width, unsigned int height,
  * @return 0 on success, 1 on failure to open the file.
  */
 int image_export_bmp(unsigned int width, unsigned int height, unsigned char *pixels,
-                     const char *file_name) {
+                     const char *file_name, int bpp) {
     unsigned char bmp_header[] = {
         /* BMP header structure: */
         0x42, 0x4d,             /* magic number */
@@ -1291,14 +1291,14 @@ int image_export_bmp(unsigned int width, unsigned int height, unsigned char *pix
     /* write the whole pixel array into BMP file */
     for (y = height - 1; y >= 0; y--) {
         /* pointer to the 1st pixel on scan line */
-        unsigned char *p = pixels + y * width * 4;
+        unsigned char *p = pixels + y * width * bpp;
         for (x = 0; x < width; x++) {
             /* swap RGB color components as required by file format */
             fwrite(p + 2, 1, 1, fout);
             fwrite(p + 1, 1, 1, fout);
             fwrite(p, 1, 1, fout);
             /* move to next pixel on scan line */
-            p += 4;
+            p += bpp;
         }
         /* write padding bytes to align row to 4-byte boundary */
         if (row_padding > 0) {
@@ -1492,6 +1492,127 @@ FINALISE:
     return code;
 }
 #endif
+
+unsigned int read4bytes(const unsigned char *array, int offset)
+{
+    return (unsigned int)array[offset]
+         | ((unsigned int)array[offset+1] << 8)
+         | ((unsigned int)array[offset+2] << 16)
+         | ((unsigned int)array[offset+3] << 24);
+}
+
+image_t image_import_bmp_from_stream(const char *file_name, FILE *fin)
+{
+    image_t image = {0, 0, 0, NULL};
+    unsigned char bmp_header[54];
+    int width, height, bpp;
+    int scanline;
+    size_t read;
+    int x, y;
+
+    read = fread(bmp_header, sizeof(bmp_header), 1, fin);
+    if (read < 1) {
+        puts("Can not read BMP header");
+        return image;
+    }
+
+    /* validate BMP magic number */
+    if (bmp_header[0] != 0x42 || bmp_header[1] != 0x4d) {
+        puts("Not a valid BMP file");
+        return image;
+    }
+
+    width = read4bytes(bmp_header, 18);
+    height = read4bytes(bmp_header, 22);
+    bpp = bmp_header[28] >> 3;
+
+    /* seek to the declared pixel-data start offset */
+    {
+        unsigned int pixel_offset = read4bytes(bmp_header, 10);
+        if (pixel_offset > 54) {
+            fseek(fin, (long)(pixel_offset - 54), SEEK_CUR);
+        }
+    }
+
+    printf("Reading image of size %dx%d pixels with bpp=%d\n", width, height, bpp);
+    image = image_create(width, height, bpp);
+
+    if (image.pixels == NULL) {
+        puts("Failed to allocate image");
+        return image;
+    }
+
+    scanline = width * bpp;
+
+    if (scanline % 4 == 0) {
+        for (y = height - 1; y >= 0; y--) {
+            /* pointer to the 1st pixel on scan line */
+            unsigned char *p = image.pixels + y * width * bpp;
+            for (x = 0; x < width; x++) {
+                /* swap RGB color components as required by file format */
+                fread(p + 2, 1, 1, fin);
+                fread(p + 1, 1, 1, fin);
+                fread(p, 1, 1, fin);
+                if (bpp == RGBA) {
+                    fseek(fin, 1, SEEK_CUR);
+                }
+                /* move to next pixel on scan line */
+                p += bpp;
+            }
+        }
+    }
+    else {
+        int y;
+        char padding_array[4];
+        int padding = (4 - scanline % 4) & 0x03;
+
+        for (y = height - 1; y >= 0; y--) {
+            /* pointer to the 1st pixel on scan line */
+            unsigned char *p = image.pixels + y * width * bpp;
+            for (x = 0; x < width; x++) {
+                /* swap RGB color components as required by file format */
+                fread(p + 2, 1, 1, fin);
+                fread(p + 1, 1, 1, fin);
+                fread(p, 1, 1, fin);
+                if (bpp == RGBA) {
+                    fseek(fin, 1, SEEK_CUR);
+                }
+                /* move to next pixel on scan line */
+                p += bpp;
+            }
+            read = fread(padding_array, padding, 1, fin);
+            if (read < 1) {
+                free(image.pixels);
+                image.pixels=NULL;
+                puts("Can not read pixels from BMP file");
+                return image;
+            }
+        }
+    }
+
+    return image;
+}
+
+image_t image_import_bmp(const char *file_name)
+{
+    FILE *fin;
+    image_t image = {0, 0, 0, NULL};
+
+    fin = fopen(file_name, "rb");
+    if (!fin)
+    {
+        return image;
+    }
+
+    image = image_import_bmp_from_stream(file_name, fin);
+
+    if (fclose(fin) == EOF)
+    {
+        return image;
+    }
+
+    return image;
+}
 
 /**
  * Writes an RGB color from the palette at the specified index into the pixel
@@ -2447,7 +2568,7 @@ void *render_and_save(void *void_parameters) {
     write_result = image_export_bmp(renderer_parameters->width,
                              renderer_parameters->height,
                              image.pixels,
-                             renderer_parameters->filename);
+                             renderer_parameters->filename, 4);
     if (write_result != 0) {
         fprintf(stderr, "Failed to write %s\n", renderer_parameters->filename);
     }
@@ -2457,8 +2578,7 @@ void *render_and_save(void *void_parameters) {
     return NULL;
 }
 
-#ifndef NO_MAIN
-int main(int argc, char **argv) {
+int render_all_fractals(void) {
 #define WIDTH 512
 #define HEIGHT 512
     unsigned char *palette = (unsigned char *)malloc(256 * 3);
@@ -2468,7 +2588,6 @@ int main(int argc, char **argv) {
     int            i;
 
     if (palette == NULL) {
-        free(palette);
         return 1;
     }
 
@@ -2532,5 +2651,15 @@ int main(int argc, char **argv) {
     free(threads);
     free(palette);
     return 0;
+}
+
+#ifndef NO_MAIN
+int main(int argc, char **argv) {
+    image_t image = image_import_bmp("mandelbrot.bmp");
+    image_export_bmp(image.width, image.height, image.pixels, "mandelbrot2.bmp", image.bpp);
+    free(image.pixels);
+    /*
+    return render_all_fractals();
+    */
 }
 #endif
