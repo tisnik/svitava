@@ -2462,6 +2462,7 @@ int main(int argc, char **argv) {
 #define HEIGHT 512
     unsigned char *palette = (unsigned char *)malloc(256 * 3);
     int            max_threads;
+    int            threads_created = 0;
     pthread_t     *threads;
     int            i;
 
@@ -2507,10 +2508,12 @@ int main(int argc, char **argv) {
         if (rc != 0) {
             fprintf(stderr, "Failed to create thread %d (error %d)\n", i, rc);
             threads[i] = 0;
+        } else {
+            threads_created++;
         }
     }
 
-    printf("All threads are created.\n");
+    printf("%d of %d threads created.\n", threads_created, max_threads);
 
     /* wait for each thread to complete */
     for (i = 0; i < max_threads; i++) {
