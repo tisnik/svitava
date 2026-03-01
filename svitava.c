@@ -56,6 +56,7 @@ image_export_png
 
 Image import operations:
 ------------------------
+image_import_bmp
 
 Renderers implemented:
 ----------------------
