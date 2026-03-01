@@ -27,6 +27,21 @@ void test_image_size_null_image(void) {
 }
 
 /**
+ * Test image_size with valid image.
+ */
+void test_image_size_valid_image(void) {
+    TEST_BEGIN
+    image_t image = image_create(100, 50, RGB);
+    assert(image.pixels != NULL);
+
+    size_t size = image_size(&image);
+    assert(size == 100 * 50 * 3);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
  * Verify that creating an image with a width of zero produces an empty image.
  *
  * Asserts that the created image has width == 0, height == 0, bpp == 0, and
