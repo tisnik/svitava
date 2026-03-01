@@ -268,6 +268,33 @@ void test_image_clone_large_image(void) {
 }
 
 /**
+ * Test image_clone copies pixel data correctly.
+ */
+void test_image_clone_copies_pixel_data(void) {
+    TEST_BEGIN
+    image_t image = image_create(10, 10, RGB);
+    assert(image.pixels != NULL);
+
+    /* Set some pixel values */
+    image_putpixel(&image, 5, 5, 111, 222, 133, 255);
+
+    image_t cloned = image_clone(&image);
+    assert(cloned.pixels != NULL);
+
+    /* Verify cloned pixel data matches */
+    unsigned char r, g, b, a;
+    image_getpixel(&cloned, 5, 5, &r, &g, &b, &a);
+    assert(r == 111 && g == 222 && b == 133);
+
+    /* Verify buffers are independent */
+    assert(image.pixels != cloned.pixels);
+
+    free(image.pixels);
+    free(cloned.pixels);
+    TEST_END
+}
+
+/**
  * Verify that trying to clear NULL image will return NULL_IMAGE_POINTER
  * and no memory will be accessed.
  */
@@ -1578,6 +1605,7 @@ int main(void) {
     test_image_clone_image_without_pixels();
     test_image_clone_proper_image();
     test_image_clone_large_image();
+    test_image_clone_copies_pixel_data();
 
     /* tests for function image_clear() */
     test_image_clear_null_image();
