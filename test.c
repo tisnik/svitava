@@ -163,6 +163,26 @@ void test_image_create_rgba(void) {
 }
 
 /**
+ * Test image_create with maximum valid dimensions.
+ */
+void test_image_create_max_dimensions(void) {
+    TEST_BEGIN
+    image_t image = image_create(MAX_WIDTH, MAX_HEIGHT, GRAYSCALE);
+    /* may or may not succeed depending on available memory */
+    /* just verify it doesn't crash and returns a valid structure */
+    if (image.pixels != NULL) {
+        assert(image.width == MAX_WIDTH);
+        assert(image.height == MAX_HEIGHT);
+        free(image.pixels);
+    } else {
+        /* out of memory is acceptable for such large allocation */
+        assert(image.width == 0);
+        assert(image.height == 0);
+    }
+    TEST_END
+}
+
+/**
  * Verify that cloning a NULL image returns a non NULL image with zero size.
  */
 void test_image_clone_null_image(void) {
@@ -1540,6 +1560,7 @@ void test_image_line_rgb_image_2x2(void) {
 int main(void) {
     /* tests for function image_size() */
     test_image_size_null_image();
+    test_image_size_valid_image();
 
     /* tests for function image_create() */
     test_image_create_zero_width();
@@ -1550,6 +1571,7 @@ int main(void) {
     test_image_create_grayscale();
     test_image_create_rgb();
     test_image_create_rgba();
+    test_image_create_max_dimensions();
 
     /* tests for function image_clone() */
     test_image_clone_null_image();
