@@ -1619,6 +1619,28 @@ void test_image_line_rgb_image_2x2(void) {
 }
 
 /**
+ * Test image_line with single pixel (start == end).
+ */
+void test_image_line_single_pixel(void) {
+    TEST_BEGIN
+    image_t image = image_create(10, 10, RGB);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    /* Draw a "line" of a single pixel */
+    int result = image_line(&image, 5, 5, 5, 5, 255, 128, 64, 255);
+    assert(result == OK);
+
+    /* Verify the pixel is set */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 5, 5, &r, &g, &b, &a);
+    assert(r == 255 && g == 128 && b == 64);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
  * Run the complete image processing test suite in a deterministic order.
  *
  * Executes all unit tests covering image size, creation, cloning, clearing,
@@ -1717,6 +1739,8 @@ int main(void) {
     test_image_line_coordinates_outside_range();
     test_image_line_rgb_image_1x1();
     test_image_line_rgb_image_2x2();
+    test_image_line_single_pixel();
+
 
     return 0;
 }
