@@ -1391,6 +1391,28 @@ void test_image_vline_grayscale_image_2x2(void) {
 }
 
 /**
+ * Test image_vline with swapped y coordinates (y1 > y2).
+ */
+void test_image_vline_swapped_coordinates(void) {
+    TEST_BEGIN
+    image_t image = image_create(10, 10, RGB);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    /* Draw vertical line with y1 > y2 */
+    int result = image_vline(&image, 5, 8, 2, 255, 128, 64, 255);
+    assert(result == OK);
+
+    /* Verify pixels are set along the line */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 5, 5, &r, &g, &b, &a);
+    assert(r == 255 && g == 128 && b == 64);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
  * Verify that drawing a line on a NULL image reports a NULL image pointer error.
  *
  * Asserts that calling image_line with a NULL image pointer returns NULL_IMAGE_POINTER.
@@ -1686,6 +1708,7 @@ int main(void) {
     test_image_vline_rgba_image_2x2();
     test_image_vline_grayscale_image_1x1();
     test_image_vline_grayscale_image_2x2();
+    test_image_vline_swapped_coordinates();
 
     /* tests for function image_line */
     test_image_line_null_image();
