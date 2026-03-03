@@ -1667,6 +1667,21 @@ void test_image_line_aa_image_without_pixels(void) {
 }
 
 /**
+ * Test that image_line_aa returns INVALID_IMAGE_TYPE for non-RGBA images.
+ */
+void test_image_line_aa_invalid_image_type(void) {
+    TEST_BEGIN
+    image_t image = image_create(100, 100, RGB);
+    assert(image.pixels != NULL);
+
+    int result = image_line_aa(&image, 0, 0, 10, 10, 255, 255, 255, 255);
+    assert(result == INVALID_IMAGE_TYPE);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
  * Run the complete image processing test suite in a deterministic order.
  *
  * Executes all unit tests covering image size, creation, cloning, clearing,
@@ -1770,6 +1785,7 @@ int main(void) {
     /* tests for function image_line_aa */
     test_image_line_aa_null_image();
     test_image_line_aa_image_without_pixels();
+    test_image_line_aa_invalid_image_type();
 
     return 0;
 }
