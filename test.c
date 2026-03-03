@@ -1651,6 +1651,22 @@ void test_image_line_aa_null_image(void) {
 }
 
 /**
+ * Test that image_line_aa returns NULL_PIXELS_POINTER when image has no pixels.
+ */
+void test_image_line_aa_image_without_pixels(void) {
+    TEST_BEGIN
+    image_t image;
+    image.width = 100;
+    image.height = 100;
+    image.bpp = RGBA;
+    image.pixels = NULL;
+
+    int result = image_line_aa(&image, 0, 0, 10, 10, 255, 255, 255, 255);
+    assert(result == NULL_PIXELS_POINTER);
+    TEST_END
+}
+
+/**
  * Run the complete image processing test suite in a deterministic order.
  *
  * Executes all unit tests covering image size, creation, cloning, clearing,
@@ -1753,6 +1769,7 @@ int main(void) {
 
     /* tests for function image_line_aa */
     test_image_line_aa_null_image();
+    test_image_line_aa_image_without_pixels();
 
     return 0;
 }
