@@ -1641,6 +1641,16 @@ void test_image_line_single_pixel(void) {
 }
 
 /**
+ * Test that image_line_aa returns NULL_IMAGE_POINTER when given a NULL image.
+ */
+void test_image_line_aa_null_image(void) {
+    TEST_BEGIN
+    int result = image_line_aa(NULL, 0, 0, 10, 10, 255, 255, 255, 255);
+    assert(result == NULL_IMAGE_POINTER);
+    TEST_END
+}
+
+/**
  * Run the complete image processing test suite in a deterministic order.
  *
  * Executes all unit tests covering image size, creation, cloning, clearing,
@@ -1741,6 +1751,8 @@ int main(void) {
     test_image_line_rgb_image_2x2();
     test_image_line_single_pixel();
 
+    /* tests for function image_line_aa */
+    test_image_line_aa_null_image();
 
     return 0;
 }
