@@ -1682,6 +1682,27 @@ void test_image_line_aa_invalid_image_type(void) {
 }
 
 /**
+ * Test that image_line_aa handles vertical lines correctly (delegates to image_vline).
+ */
+void test_image_line_aa_vertical_line(void) {
+    TEST_BEGIN
+    image_t image = image_create(10, 10, RGBA);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    int result = image_line_aa(&image, 5, 2, 5, 8, 255, 128, 64, 255);
+    assert(result == OK);
+
+    /* Verify some pixels are set along the vertical line */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 5, 5, &r, &g, &b, &a);
+    assert(r == 255 && g == 128 && b == 64);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
  * Run the complete image processing test suite in a deterministic order.
  *
  * Executes all unit tests covering image size, creation, cloning, clearing,
@@ -1786,6 +1807,7 @@ int main(void) {
     test_image_line_aa_null_image();
     test_image_line_aa_image_without_pixels();
     test_image_line_aa_invalid_image_type();
+    test_image_line_aa_vertical_line();
 
     return 0;
 }
