@@ -1724,6 +1724,27 @@ void test_image_line_aa_horizontal_line(void) {
 }
 
 /**
+ * Test that image_line_aa draws diagonal lines with anti-aliasing.
+ */
+void test_image_line_aa_diagonal_line(void) {
+    TEST_BEGIN
+    image_t image = image_create(20, 20, RGBA);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    int result = image_line_aa(&image, 2, 2, 18, 18, 255, 0, 0, 255);
+    assert(result == OK);
+
+    /* Verify that the main diagonal has red pixels */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 10, 10, &r, &g, &b, &a);
+    assert(r > 0); /* Should have some red component */
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
  * Run the complete image processing test suite in a deterministic order.
  *
  * Executes all unit tests covering image size, creation, cloning, clearing,
@@ -1830,6 +1851,7 @@ int main(void) {
     test_image_line_aa_invalid_image_type();
     test_image_line_aa_vertical_line();
     test_image_line_aa_horizontal_line();
+    test_image_line_aa_diagonal_line();
 
     return 0;
 }
