@@ -1682,6 +1682,69 @@ void test_image_line_aa_invalid_image_type(void) {
 }
 
 /**
+ * Test that image_line_aa handles vertical lines correctly (delegates to image_vline).
+ */
+void test_image_line_aa_vertical_line(void) {
+    TEST_BEGIN
+    image_t image = image_create(10, 10, RGBA);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    int result = image_line_aa(&image, 5, 2, 5, 8, 255, 128, 64, 255);
+    assert(result == OK);
+
+    /* Verify some pixels are set along the vertical line */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 5, 5, &r, &g, &b, &a);
+    assert(r == 255 && g == 128 && b == 64);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test that image_line_aa handles horizontal lines correctly (delegates to image_hline).
+ */
+void test_image_line_aa_horizontal_line(void) {
+    TEST_BEGIN
+    image_t image = image_create(10, 10, RGBA);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    int result = image_line_aa(&image, 2, 5, 8, 5, 255, 128, 64, 255);
+    assert(result == OK);
+
+    /* Verify some pixels are set along the horizontal line */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 5, 5, &r, &g, &b, &a);
+    assert(r == 255 && g == 128 && b == 64);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test that image_line_aa draws diagonal lines with anti-aliasing.
+ */
+void test_image_line_aa_diagonal_line(void) {
+    TEST_BEGIN
+    image_t image = image_create(20, 20, RGBA);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    int result = image_line_aa(&image, 2, 2, 18, 18, 255, 0, 0, 255);
+    assert(result == OK);
+
+    /* Verify that the main diagonal has red pixels */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 10, 10, &r, &g, &b, &a);
+    assert(r > 0); /* Should have some red component */
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
  * Run the complete image processing test suite in a deterministic order.
  *
  * Executes all unit tests covering image size, creation, cloning, clearing,
@@ -1786,6 +1849,9 @@ int main(void) {
     test_image_line_aa_null_image();
     test_image_line_aa_image_without_pixels();
     test_image_line_aa_invalid_image_type();
+    test_image_line_aa_vertical_line();
+    test_image_line_aa_horizontal_line();
+    test_image_line_aa_diagonal_line();
 
     return 0;
 }
