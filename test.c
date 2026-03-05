@@ -1732,13 +1732,16 @@ void test_image_line_aa_diagonal_line(void) {
     assert(image.pixels != NULL);
     image_clear(&image);
 
-    int result = image_line_aa(&image, 2, 2, 18, 18, 255, 0, 0, 255);
+    int result = image_line_aa(&image, 2, 2, 18, 10, 255, 0, 0, 255);
     assert(result == OK);
 
-    /* Verify that the main diagonal has red pixels */
-    unsigned char r, g, b, a;
-    image_getpixel(&image, 10, 10, &r, &g, &b, &a);
-    assert(r > 0); /* Should have some red component */
+    /* Verify anti-aliased split coverage on neighboring pixels */
+    unsigned char r1, g1, b1, a1;
+    unsigned char r2, g2, b2, a2;
+    assert(image_getpixel(&image, 3, 2, &r1, &g1, &b1, &a1) == OK);
+    assert(image_getpixel(&image, 3, 3, &r2, &g2, &b2, &a2) == OK);
+    assert(r1 > 0 && r1 < 255);
+    assert(r2 > 0 && r2 < 255);
 
     free(image.pixels);
     TEST_END
