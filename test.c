@@ -1748,6 +1748,22 @@ void test_image_line_aa_diagonal_line(void) {
 }
 
 /**
+ * Test image_line_aa with coordinates outside bounds (edge case).
+ */
+void test_image_line_aa_out_of_bounds(void) {
+    TEST_BEGIN
+    image_t image = image_create(10, 10, RGBA);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    int result = image_line_aa(&image, 0, 0, 20, 20, 255, 0, 0, 255);
+    assert(result == OK);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
  * Run the complete image processing test suite in a deterministic order.
  *
  * Executes all unit tests covering image size, creation, cloning, clearing,
@@ -1855,6 +1871,7 @@ int main(void) {
     test_image_line_aa_vertical_line();
     test_image_line_aa_horizontal_line();
     test_image_line_aa_diagonal_line();
+    test_image_line_aa_out_of_bounds();
 
     return 0;
 }
