@@ -1764,6 +1764,78 @@ void test_image_line_aa_out_of_bounds(void) {
 }
 
 /**
+ * Test filter_smooth_3x3_block with NULL image.
+ */
+void test_filter_smooth_3x3_block_null_image(void) {
+    TEST_BEGIN
+    /* Should not crash */
+    filter_smooth_3x3_block(NULL);
+    TEST_END
+}
+
+/**
+ * Test filter_smooth_3x3_block with image without pixels.
+ */
+void test_filter_smooth_3x3_block_image_without_pixels(void) {
+    TEST_BEGIN
+    image_t image;
+    image.width = 10;
+    image.height = 10;
+    image.bpp = RGB;
+    image.pixels = NULL;
+
+    /* Should not crash */
+    filter_smooth_3x3_block(&image);
+    TEST_END
+}
+
+/**
+ * Test filter_smooth_3x3_block on a small RGB image.
+ */
+void test_filter_smooth_3x3_block_rgb_image(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGB);
+    assert(image.pixels != NULL);
+
+    /* Set center pixel to white, surrounded by black */
+    image_clear(&image);
+    image_putpixel(&image, 2, 2, 255, 255, 255, 255);
+
+    filter_smooth_3x3_block(&image);
+
+    /* Center pixel should be smoothed (average of 1 white + 8 black = ~28) */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 2, 2, &r, &g, &b, &a);
+    assert(r == 28 && g == 28 && b == 28);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test filter on RGBA image to ensure alpha channel handling.
+ */
+void test_filter_smooth_3x3_block_rgba_image(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGBA);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    /* Set center pixel with specific alpha */
+    image_putpixel(&image, 2, 2, 255, 255, 255, 128);
+
+    filter_smooth_3x3_block(&image);
+
+    /* Verify filter was applied and alpha is set to 255 (opaque) */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 2, 2, &r, &g, &b, &a);
+    assert(a == 255); /* Filters set alpha to 255 */
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
  * Run the complete image processing test suite in a deterministic order.
  *
  * Executes all unit tests covering image size, creation, cloning, clearing,
@@ -1873,5 +1945,10 @@ int main(void) {
     test_image_line_aa_diagonal_line();
     test_image_line_aa_out_of_bounds();
 
+    /* tests for filter functions */
+    test_filter_smooth_3x3_block_null_image();
+    test_filter_smooth_3x3_block_image_without_pixels();
+    test_filter_smooth_3x3_block_rgb_image();
+    test_filter_smooth_3x3_block_rgba_image();
     return 0;
 }
