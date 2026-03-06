@@ -1790,6 +1790,29 @@ void test_filter_smooth_3x3_block_image_without_pixels(void) {
 }
 
 /**
+ * Test filter_smooth_3x3_block on a small RGB image.
+ */
+void test_filter_smooth_3x3_block_rgb_image(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGB);
+    assert(image.pixels != NULL);
+
+    /* Set center pixel to white, surrounded by black */
+    image_clear(&image);
+    image_putpixel(&image, 2, 2, 255, 255, 255, 255);
+
+    filter_smooth_3x3_block(&image);
+
+    /* Center pixel should be smoothed (average of 1 white + 8 black = ~28) */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 2, 2, &r, &g, &b, &a);
+    assert(r == 28 && g == 28 && b == 28);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
  * Run the complete image processing test suite in a deterministic order.
  *
  * Executes all unit tests covering image size, creation, cloning, clearing,
@@ -1902,5 +1925,6 @@ int main(void) {
     /* tests for filter functions */
     test_filter_smooth_3x3_block_null_image();
     test_filter_smooth_3x3_block_image_without_pixels();
+    test_filter_smooth_3x3_block_rgb_image();
     return 0;
 }
