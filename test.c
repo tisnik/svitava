@@ -1774,6 +1774,22 @@ void test_filter_smooth_3x3_block_null_image(void) {
 }
 
 /**
+ * Test filter_smooth_3x3_block with image without pixels.
+ */
+void test_filter_smooth_3x3_block_image_without_pixels(void) {
+    TEST_BEGIN
+    image_t image;
+    image.width = 10;
+    image.height = 10;
+    image.bpp = RGB;
+    image.pixels = NULL;
+
+    /* Should not crash */
+    filter_smooth_3x3_block(&image);
+    TEST_END
+}
+
+/**
  * Run the complete image processing test suite in a deterministic order.
  *
  * Executes all unit tests covering image size, creation, cloning, clearing,
@@ -1885,5 +1901,6 @@ int main(void) {
 
     /* tests for filter functions */
     test_filter_smooth_3x3_block_null_image();
+    test_filter_smooth_3x3_block_image_without_pixels();
     return 0;
 }
