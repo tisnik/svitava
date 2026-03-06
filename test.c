@@ -1813,6 +1813,29 @@ void test_filter_smooth_3x3_block_rgb_image(void) {
 }
 
 /**
+ * Test filter on RGBA image to ensure alpha channel handling.
+ */
+void test_filter_smooth_3x3_block_rgba_image(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGBA);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    /* Set center pixel with specific alpha */
+    image_putpixel(&image, 2, 2, 255, 255, 255, 128);
+
+    filter_smooth_3x3_block(&image);
+
+    /* Verify filter was applied and alpha is set to 255 (opaque) */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 2, 2, &r, &g, &b, &a);
+    assert(a == 255); /* Filters set alpha to 255 */
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
  * Run the complete image processing test suite in a deterministic order.
  *
  * Executes all unit tests covering image size, creation, cloning, clearing,
@@ -1926,5 +1949,6 @@ int main(void) {
     test_filter_smooth_3x3_block_null_image();
     test_filter_smooth_3x3_block_image_without_pixels();
     test_filter_smooth_3x3_block_rgb_image();
+    test_filter_smooth_3x3_block_rgba_image();
     return 0;
 }
