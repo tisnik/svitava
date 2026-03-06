@@ -1764,6 +1764,16 @@ void test_image_line_aa_out_of_bounds(void) {
 }
 
 /**
+ * Test filter_smooth_3x3_block with NULL image.
+ */
+void test_filter_smooth_3x3_block_null_image(void) {
+    TEST_BEGIN
+    /* Should not crash */
+    filter_smooth_3x3_block(NULL);
+    TEST_END
+}
+
+/**
  * Run the complete image processing test suite in a deterministic order.
  *
  * Executes all unit tests covering image size, creation, cloning, clearing,
@@ -1873,5 +1883,7 @@ int main(void) {
     test_image_line_aa_diagonal_line();
     test_image_line_aa_out_of_bounds();
 
+    /* tests for filter functions */
+    test_filter_smooth_3x3_block_null_image();
     return 0;
 }
