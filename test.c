@@ -1836,6 +1836,55 @@ void test_filter_smooth_3x3_block_rgba_image(void) {
 }
 
 /**
+ * Test filter on grayscale image.
+ */
+void test_filter_smooth_3x3_block_grayscale_image(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, GRAYSCALE);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    /* Set center pixel to white */
+    image_putpixel(&image, 2, 2, 255, 255, 255, 255);
+
+    filter_smooth_3x3_block(&image);
+
+    /* Center pixel should be smoothed */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 2, 2, &r, &g, &b, &a);
+    assert(r == 28); /* (255*1 + 0*8) / 9 = 28 */
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test filter_smooth_3x3_gauss with NULL image.
+ */
+void test_filter_smooth_3x3_gauss_null_image(void) {
+    TEST_BEGIN
+    /* Should not crash */
+    filter_smooth_3x3_gauss(NULL);
+    TEST_END
+}
+
+/**
+ * Test filter_smooth_3x3_gauss with image without pixels.
+ */
+void test_filter_smooth_3x3_gauss_image_without_pixels(void) {
+    TEST_BEGIN
+    image_t image;
+    image.width = 10;
+    image.height = 10;
+    image.bpp = RGB;
+    image.pixels = NULL;
+
+    /* Should not crash */
+    filter_smooth_3x3_gauss(&image);
+    TEST_END
+}
+
+/**
  * Run the complete image processing test suite in a deterministic order.
  *
  * Executes all unit tests covering image size, creation, cloning, clearing,
@@ -1950,5 +1999,9 @@ int main(void) {
     test_filter_smooth_3x3_block_image_without_pixels();
     test_filter_smooth_3x3_block_rgb_image();
     test_filter_smooth_3x3_block_rgba_image();
+    test_filter_smooth_3x3_block_grayscale_image();
+    test_filter_smooth_3x3_gauss_null_image();
+    test_filter_smooth_3x3_gauss_image_without_pixels();
+
     return 0;
 }
