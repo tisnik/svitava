@@ -58,6 +58,19 @@ Image import operations:
 ------------------------
 image_import_bmp
 
+Drawing into image:
+-------------------
+image_putpixel
+image_putpixel_max
+image_hline
+image_vline
+image_line
+image_line_aa
+
+Reading from image:
+-------------------
+image_getpixel
+
 Renderers implemented:
 ----------------------
 
