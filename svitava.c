@@ -340,6 +340,39 @@ int image_putpixel(image_t *image, int x, int y, unsigned char r,
 }
 
 /**
+ * Set the RGBA color of the pixel at the specified (x, y) coordinates in the image.
+ *
+ * Not checks are performed! This function can crash the application for
+ * certain parameters.
+ *
+ * @param image Pointer to the image whose pixel will be updated.
+ * @param x Horizontal pixel coordinate (0 is left).
+ * @param y Vertical pixel coordinate (0 is top).
+ * @param r Red component (0–255).
+ * @param g Green component (0–255).
+ * @param b Blue component (0–255).
+ * @param a Alpha component (0–255).
+ */
+void image_putpixel_fast(image_t *image, int x, int y, unsigned char r,
+                   unsigned char g, unsigned char b, unsigned char a) {
+    unsigned char *p;
+
+    p = image->pixels + (x + y * image->width) * image->bpp;
+    if (image->bpp == GRAYSCALE) {
+        /* convert to grayscale using integer approximation of standard weights */
+        /* uses integer arithmetic with coefficients scaled by 256 (77≈0.299×256, 150≈0.587×256, 29≈0.114×256) */
+        *p = (unsigned char)((77 * r + 150 * g + 29 * b) >> 8);
+    } else {
+        *p++ = r;
+        *p++ = g;
+        *p++ = b;
+        if (image->bpp == RGBA) {
+            *p = a;
+        }
+    }
+}
+
+/**
  * Update the pixel at (x, y) by replacing each color channel with the greater of
  * the existing channel and the provided value; the alpha channel is written
  * unconditionally.
