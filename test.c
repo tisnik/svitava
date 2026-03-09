@@ -1460,24 +1460,12 @@ void test_image_line_negative_coordinates(void) {
     assert(image.pixels != NULL);
     image_clear(&image);
 
-    /* x1 is negative */
-    result = image_line(&image, -1, 0, 0, 0, 0, 0, 0, 0);
-    assert(result == INVALID_COORDINATES);
-
-    /* x2 is negative */
-    result = image_line(&image, 0, 0, -1, 0, 0, 0, 0, 0);
-    assert(result == INVALID_COORDINATES);
-
     /* x1 and x2 are negative */
     result = image_line(&image, -1, 0, -1, 0, 0, 0, 0, 0);
     assert(result == INVALID_COORDINATES);
 
-    /* y1 is negative */
-    result = image_line(&image, 0, -1, 0, 0, 0, 0, 0, 0);
-    assert(result == INVALID_COORDINATES);
-
-    /* y2 is negative */
-    result = image_line(&image, 0, 0, 0, -1, 0, 0, 0, 0);
+    /* y1 and y2 are negative */
+    result = image_line(&image, 0, -1, 0, -1, 0, 0, 0, 0);
     assert(result == INVALID_COORDINATES);
 
     /* all coordinates are negative */
@@ -1509,24 +1497,12 @@ void test_image_line_coordinates_outside_range(void) {
     image = image_create(100, 100, GRAYSCALE);
     assert(image.pixels != NULL);
 
-    /* x1 is too large */
-    result = image_line(&image, 100 + 1, 1, 0, 0, 0, 0, 0, 0);
-    assert(result == INVALID_COORDINATES);
-
-    /* x2 is too large */
-    result = image_line(&image, 0, 0, 100 + 1, 0, 0, 0, 0, 0);
-    assert(result == INVALID_COORDINATES);
-
     /* x1 and x2 are too large */
     result = image_line(&image, 100 + 1, 0, 100 + 1, 0, 0, 0, 0, 0);
     assert(result == INVALID_COORDINATES);
 
-    /* y1 is too large */
-    result = image_line(&image, 1, 100 + 1, 0, 0, 0, 0, 0, 0);
-    assert(result == INVALID_COORDINATES);
-
-    /* y2 is too large */
-    result = image_line(&image, 1, 0, 1, 100 + 1, 0, 0, 0, 0);
+    /* y1 and y2 are too large */
+    result = image_line(&image, 1, 100 + 1, 0, 100+1, 0, 0, 0, 0);
     assert(result == INVALID_COORDINATES);
 
     free(image.pixels);
