@@ -515,10 +515,7 @@ int image_hline(image_t *image, int x1, int x2, int y, unsigned char r, unsigned
     for (x = fromX; x <= toX; x++) {
         /* all checks are performed internally */
         /* TODO: fast putpixel function w/o any checks */
-        int result = image_putpixel(image, x, y, r, g, b, a);
-        if (result != OK) {
-            return result;
-        }
+        image_putpixel_fast(image, x, y, r, g, b, a);
     }
     return OK;
 }
