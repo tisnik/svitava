@@ -584,12 +584,30 @@ int image_line(image_t *image, int x1, int y1, int x2, int y2, unsigned char r, 
     /* Only properly-created images are accepted */
     ENSURE_PROPER_IMAGE_STRUCTURE
 
+    /* Check for line totally on the left of an image */
+    if (x1 < 0 && x2 < 0) {
+        return INVALID_COORDINATES;
+    }
+
+    /* Check for line totally above top of an image */
+    if (y1 < 0 && y2 < 0) {
+        return INVALID_COORDINATES;
+    }
+
+    /* Check for line totally on the right of an image */
+    if (x1 >= (int)image->width && x2 >= (int)image->width) {
+        return INVALID_COORDINATES;
+    }
+
+    /* Check for line totally bellow bottom of an image */
+    if (y1 >= (int)image->height && y2 >= (int)image->height) {
+        return INVALID_COORDINATES;
+    }
+
     while (1) {
-        /* all checks are performed internally */
-        /* TODO: fast putpixel function w/o any checks */
-        int result = image_putpixel(image, x1, y1, r, g, b, a);
-        if (result != OK) {
-            return result;
+        /* draw pixel only if it is within the image */
+        if (x1 >= 0 && x1 < (int)image->width && y1 >=0 && y1 < (int)image->height) {
+            image_putpixel_fast(image, x1, y1, r, g, b, a);
         }
         /* we reached endpoint */
         if (x1 == x2 && y1 == y2) {
