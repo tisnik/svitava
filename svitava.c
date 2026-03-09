@@ -513,8 +513,7 @@ int image_hline(image_t *image, int x1, int x2, int y, unsigned char r, unsigned
         return INVALID_COORDINATES;
     }
     for (x = fromX; x <= toX; x++) {
-        /* all checks are performed internally */
-        /* TODO: fast putpixel function w/o any checks */
+        /* all checks were performed previously */
         image_putpixel_fast(image, x, y, r, g, b, a);
     }
     return OK;
@@ -550,12 +549,8 @@ int image_vline(image_t *image, int x, int y1, int y2, unsigned char r, unsigned
         return INVALID_COORDINATES;
     }
     for (y = fromY; y <= toY; y++) {
-        /* all checks are performed internally */
-        /* TODO: fast putpixel function w/o any checks */
-        int result = image_putpixel(image, x, y, r, g, b, a);
-        if (result != OK) {
-            return result;
-        }
+        /* all checks were performed previously */
+        image_putpixel_fast(image, x, y, r, g, b, a);
     }
     return OK;
 }
