@@ -674,6 +674,26 @@ int image_line_aa(image_t *image, int x1, int y1, int x2, int y2, unsigned char 
         return image_hline(image, x1, x2, y1, r, g, b, a);
     }
 
+    /* Check for line totally on the left of an image */
+    if (x1 < 0 && x2 < 0) {
+        return INVALID_COORDINATES;
+    }
+
+    /* Check for line totally above top of an image */
+    if (y1 < 0 && y2 < 0) {
+        return INVALID_COORDINATES;
+    }
+
+    /* Check for line totally on the right of an image */
+    if (x1 >= (int)image->width && x2 >= (int)image->width) {
+        return INVALID_COORDINATES;
+    }
+
+    /* Check for line totally bellow bottom of an image */
+    if (y1 >= (int)image->height && y2 >= (int)image->height) {
+        return INVALID_COORDINATES;
+    }
+
     if (x1 > x2) {
         x1 = x1 ^ x2;
         x2 = x1 ^ x2;
