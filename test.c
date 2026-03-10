@@ -1939,6 +1939,78 @@ void test_filter_smooth_3x3_gauss_image_without_pixels(void) {
 }
 
 /**
+ * Test filter_smooth_3x3_gauss on a small RGB image.
+ */
+void test_filter_smooth_3x3_gauss_rgb_image(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGB);
+    assert(image.pixels != NULL);
+
+    /* Set center pixel to white, surrounded by black */
+    image_clear(&image);
+    image_putpixel(&image, 2, 2, 255, 255, 255, 255);
+
+    filter_smooth_3x3_gauss(&image);
+
+    /* Center pixel should be smoothed with Gaussian weights */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 2, 2, &r, &g, &b, &a);
+    assert(r == 63 && g == 63 && b == 63); /* 255*4/16 = 63 */
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test filter_smooth_3x3_gauss on a small RGBA image.
+ */
+void test_filter_smooth_3x3_gauss_rgba_image(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGBA);
+    assert(image.pixels != NULL);
+
+    /* Set center pixel to white, surrounded by black */
+    image_clear(&image);
+    image_putpixel(&image, 2, 2, 255, 255, 255, 128);
+
+    filter_smooth_3x3_gauss(&image);
+
+    /* Center pixel should be smoothed with Gaussian weights */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 2, 2, &r, &g, &b, &a);
+    assert(r == 63 && g == 63 && b == 63); /* 255*4/16 = 63 */
+    assert(a == 255);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test filter on grayscale image.
+ */
+void test_filter_smooth_3x3_gauss_grayscale_image(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, GRAYSCALE);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    /* Set center pixel to white */
+    image_putpixel(&image, 2, 2, 255, 255, 255, 255);
+
+    filter_smooth_3x3_gauss(&image);
+
+    /* Center pixel should be smoothed */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 2, 2, &r, &g, &b, &a);
+    assert(r == 63);
+    assert(g == 63);
+    assert(b == 63);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
  * Run the complete image processing test suite in a deterministic order.
  *
  * Executes all unit tests covering image size, creation, cloning, clearing,
@@ -2055,8 +2127,12 @@ int main(void) {
     test_filter_smooth_3x3_block_rgb_image();
     test_filter_smooth_3x3_block_rgba_image();
     test_filter_smooth_3x3_block_grayscale_image();
+
     test_filter_smooth_3x3_gauss_null_image();
     test_filter_smooth_3x3_gauss_image_without_pixels();
+    test_filter_smooth_3x3_gauss_rgb_image();
+    test_filter_smooth_3x3_gauss_rgba_image();
+    test_filter_smooth_3x3_gauss_grayscale_image();
 
     return 0;
 }
