@@ -1971,7 +1971,7 @@ void test_filter_smooth_3x3_gauss_rgba_image(void) {
 
     /* Set center pixel to white, surrounded by black */
     image_clear(&image);
-    image_putpixel(&image, 2, 2, 255, 255, 255, 255);
+    image_putpixel(&image, 2, 2, 255, 255, 255, 128);
 
     filter_smooth_3x3_gauss(&image);
 
@@ -1979,6 +1979,7 @@ void test_filter_smooth_3x3_gauss_rgba_image(void) {
     unsigned char r, g, b, a;
     image_getpixel(&image, 2, 2, &r, &g, &b, &a);
     assert(r == 63 && g == 63 && b == 63); /* 255*4/16 = 63 */
+    assert(a == 255);
 
     free(image.pixels);
     TEST_END
