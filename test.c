@@ -1550,6 +1550,44 @@ void test_image_line_coordinates_outside_range(void) {
 }
 
 /**
+ * Verifies that image_line does not reject drawing lines that cross the image
+ * area.
+ *
+ * Creates a 100×100 grayscale image and asserts that image_line returns OK in
+ * all 'crossing the area' situations.
+ *
+ * The test allocates and frees the image pixel buffer and uses assertions to
+ * validate expected return codes.
+ */
+void test_image_line_crossing_coordinates(void) {
+    TEST_BEGIN
+    image_t image;
+    int     result;
+
+    image = image_create(100, 100, GRAYSCALE);
+    assert(image.pixels != NULL);
+
+    /* cross from top to bottom */
+    result = image_line(&image, 50, -1000, 50, 1000, 0, 0, 0, 0);
+    assert(result == OK);
+
+    /* cross from bottom to top */
+    result = image_line(&image, 50, 1000, 50, -1000, 0, 0, 0, 0);
+    assert(result == OK);
+
+    /* cross from left to right */
+    result = image_line(&image, -1000, 50, 1000, 50, 0, 0, 0, 0);
+    assert(result == OK);
+
+    /* cross from right to left */
+    result = image_line(&image, 1000, 50, -1000, 50, 0, 0, 0, 0);
+    assert(result == OK);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
  * Test drawing a line on a 1x1 RGB image.
  *
  * Verifies that calling image_line on a 1x1 RGB image writes the provided RGB components
@@ -1997,6 +2035,7 @@ int main(void) {
     test_image_line_image_without_pixels();
     test_image_line_negative_coordinates();
     test_image_line_coordinates_outside_range();
+    test_image_line_crossing_coordinates();
     test_image_line_rgb_image_1x1();
     test_image_line_rgb_image_2x2();
     test_image_line_single_pixel();
