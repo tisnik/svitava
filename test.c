@@ -2037,6 +2037,34 @@ void test_filter_sharpen_3x3_image_without_pixels(void) {
 }
 
 /**
+ * Test filter_sharpen_3x3 on a small RGB image.
+ */
+void test_filter_sharpen_3x3_rgb_image(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGB);
+    assert(image.pixels != NULL);
+
+    /* Create a simple gradient */
+    image_clear(&image);
+    image_putpixel(&image, 2, 2, 100, 100, 100, 255);
+    image_putpixel(&image, 1, 2, 50, 50, 50, 255);
+    image_putpixel(&image, 3, 2, 50, 50, 50, 255);
+    image_putpixel(&image, 2, 1, 50, 50, 50, 255);
+    image_putpixel(&image, 2, 3, 50, 50, 50, 255);
+
+    filter_sharpen_3x3(&image);
+
+    /* Center pixel should be sharpened: 5*100 + 4*(-50) = 300 */
+    /* Clamped to 255 */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 2, 2, &r, &g, &b, &a);
+    assert(r == 255 && g == 255 && b == 255);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
  * Run the complete image processing test suite in a deterministic order.
  *
  * Executes all unit tests covering image size, creation, cloning, clearing,
@@ -2162,6 +2190,7 @@ int main(void) {
 
     test_filter_sharpen_3x3_null_image();
     test_filter_sharpen_3x3_image_without_pixels();
+    test_filter_sharpen_3x3_rgb_image();
 
     return 0;
 }
