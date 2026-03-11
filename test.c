@@ -2011,6 +2011,16 @@ void test_filter_smooth_3x3_gauss_grayscale_image(void) {
 }
 
 /**
+ * Test filter_sharpen_3x3 with NULL image.
+ */
+void test_filter_sharpen_3x3_null_image(void) {
+    TEST_BEGIN
+    /* Should not crash */
+    filter_sharpen_3x3(NULL);
+    TEST_END
+}
+
+/**
  * Run the complete image processing test suite in a deterministic order.
  *
  * Executes all unit tests covering image size, creation, cloning, clearing,
@@ -2134,5 +2144,6 @@ int main(void) {
     test_filter_smooth_3x3_gauss_rgba_image();
     test_filter_smooth_3x3_gauss_grayscale_image();
 
+    test_filter_sharpen_3x3_null_image();
     return 0;
 }
