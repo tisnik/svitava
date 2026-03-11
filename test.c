@@ -2107,7 +2107,7 @@ void test_filter_sharpen_3x3_grayscale_image(void) {
 
     filter_sharpen_3x3(&image);
 
-    /* Center pixel should be smoothed */
+    /* Center pixel should be sharpened */
     unsigned char r, g, b, a;
     image_getpixel(&image, 2, 2, &r, &g, &b, &a);
     assert(r == 255);
