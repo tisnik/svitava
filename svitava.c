@@ -563,6 +563,23 @@ static int line_outside_image_area(const image_t *image, int x1, int y1, int x2,
 }
 
 /**
+ * Checks whether a line segment is completely outside an image's bounding rectangle.
+ *
+ * @param image Pointer to the image whose bounds are tested.
+ * @param x1 X coordinate of the first endpoint.
+ * @param y1 Y coordinate of the first endpoint.
+ * @param x2 X coordinate of the second endpoint.
+ * @param y2 Y coordinate of the second endpoint.
+ * @returns Non-zero if both endpoints lie strictly to the left, above, right, or below the image (i.e., the segment is entirely outside); 0 otherwise.
+ */
+static int line_outside_image_area(const image_t *image, int x1, int y1, int x2, int y2) {
+    return (x1 < 0 && x2 < 0) /* line on left side of image */
+        || (y1 < 0 && y2 < 0) /* line above the image */
+        || (x1 >= (int)image->width && x2 >= (int)image->width) /* line on right side of image */
+        || (y1 >= (int)image->height && y2 >= (int)image->height); /* line below the image */
+}
+
+/**
  * Draws a straight line between two pixel coordinates using an integer rasterization algorithm.
  *
  * The line includes both endpoint pixels and writes the specified RGBA color to each covered pixel.
