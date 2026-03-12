@@ -555,13 +555,6 @@ int image_vline(image_t *image, int x, int y1, int y2, unsigned char r, unsigned
     return OK;
 }
 
-static int line_outside_image_area(const image_t *image, int x1, int y1, int x2, int y2) {
-    return (x1 < 0 && x2 < 0) /* line on left side of image */
-        || (y1 < 0 && y2 < 0) /* line above the image */
-        || (x1 >= (int)image->width && x2 >= (int)image->width) /* line on right side of image */
-        || (y1 >= (int)image->height && y2 >= (int)image->height); /* line below the image */
-}
-
 /**
  * Checks whether a line segment is completely outside an image's bounding rectangle.
  *
