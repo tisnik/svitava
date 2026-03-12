@@ -555,13 +555,6 @@ int image_vline(image_t *image, int x, int y1, int y2, unsigned char r, unsigned
     return OK;
 }
 
-static int line_outside_image_area(const image_t *image, int x1, int y1, int x2, int y2) {
-    return (x1 < 0 && x2 < 0) /* line on left side of image */
-        || (y1 < 0 && y2 < 0) /* line above the image */
-        || (x1 >= (int)image->width && x2 >= (int)image->width) /* line on right side of image */
-        || (y1 >= (int)image->height && y2 >= (int)image->height); /* line below the image */
-}
-
 /**
  * Checks whether a line segment is completely outside an image's bounding rectangle.
  *
@@ -608,23 +601,8 @@ int image_line(image_t *image, int x1, int y1, int x2, int y2, unsigned char r, 
     /* Only properly-created images are accepted */
     ENSURE_PROPER_IMAGE_STRUCTURE
 
-    /* Check for line totally on the left of an image */
-    if (x1 < 0 && x2 < 0) {
-        return INVALID_COORDINATES;
-    }
-
-    /* Check for line totally above top of an image */
-    if (y1 < 0 && y2 < 0) {
-        return INVALID_COORDINATES;
-    }
-
-    /* Check for line totally on the right of an image */
-    if (x1 >= (int)image->width && x2 >= (int)image->width) {
-        return INVALID_COORDINATES;
-    }
-
-    /* Check for line totally bellow bottom of an image */
-    if (y1 >= (int)image->height && y2 >= (int)image->height) {
+    /* Check if line is totally outside of the image */
+    if (line_outside_image_area(image, x1, y1, x2, y2)) {
         return INVALID_COORDINATES;
     }
 
@@ -698,23 +676,8 @@ int image_line_aa(image_t *image, int x1, int y1, int x2, int y2, unsigned char 
         return image_hline(image, x1, x2, y1, r, g, b, a);
     }
 
-    /* Check for line totally on the left of an image */
-    if (x1 < 0 && x2 < 0) {
-        return INVALID_COORDINATES;
-    }
-
-    /* Check for line totally above top of an image */
-    if (y1 < 0 && y2 < 0) {
-        return INVALID_COORDINATES;
-    }
-
-    /* Check for line totally on the right of an image */
-    if (x1 >= (int)image->width && x2 >= (int)image->width) {
-        return INVALID_COORDINATES;
-    }
-
-    /* Check for line totally bellow bottom of an image */
-    if (y1 >= (int)image->height && y2 >= (int)image->height) {
+    /* Check if line is totally outside of the image */
+    if (line_outside_image_area(image, x1, y1, x2, y2)) {
         return INVALID_COORDINATES;
     }
 
