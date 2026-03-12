@@ -608,23 +608,8 @@ int image_line(image_t *image, int x1, int y1, int x2, int y2, unsigned char r, 
     /* Only properly-created images are accepted */
     ENSURE_PROPER_IMAGE_STRUCTURE
 
-    /* Check for line totally on the left of an image */
-    if (x1 < 0 && x2 < 0) {
-        return INVALID_COORDINATES;
-    }
-
-    /* Check for line totally above top of an image */
-    if (y1 < 0 && y2 < 0) {
-        return INVALID_COORDINATES;
-    }
-
-    /* Check for line totally on the right of an image */
-    if (x1 >= (int)image->width && x2 >= (int)image->width) {
-        return INVALID_COORDINATES;
-    }
-
-    /* Check for line totally bellow bottom of an image */
-    if (y1 >= (int)image->height && y2 >= (int)image->height) {
+    /* Check if line is totally outside of the image */
+    if (line_outside_image_area(image, x1, y1, x2, y2)) {
         return INVALID_COORDINATES;
     }
 
