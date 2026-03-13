@@ -2119,6 +2119,16 @@ void test_filter_sharpen_3x3_grayscale_image(void) {
 }
 
 /**
+ * Test filter_edge_detection_3x3_1 with NULL image.
+ */
+void test_filter_edge_detection_3x3_1_null_image(void) {
+    TEST_BEGIN
+    /* Should not crash */
+    filter_edge_detection_3x3_1(NULL);
+    TEST_END
+}
+
+/**
  * Run the complete image processing test suite in a deterministic order.
  *
  * Executes all unit tests covering image size, creation, cloning, clearing,
@@ -2247,6 +2257,8 @@ int main(void) {
     test_filter_sharpen_3x3_rgb_image();
     test_filter_sharpen_3x3_rgba_image();
     test_filter_sharpen_3x3_grayscale_image();
+
+    test_filter_edge_detection_3x3_1_null_image();
 
     return 0;
 }
