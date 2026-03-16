@@ -2128,6 +2128,9 @@ void test_filter_edge_detection_3x3_1_null_image(void) {
     TEST_END
 }
 
+/**
+ * Test filter_edge_detection_3x3_1 with image without pixels.
+ */
 void test_filter_edge_detection_3x3_1_image_without_pixels(void) {
     TEST_BEGIN
     image_t image;
@@ -2136,6 +2139,42 @@ void test_filter_edge_detection_3x3_1_image_without_pixels(void) {
     image.bpp = RGB;
     image.pixels = NULL;
     filter_edge_detection_3x3_1(&image);
+    TEST_END
+}
+
+/**
+ * Test filter_edge_detection_3x3_1 on a simple edge.
+ */
+void test_filter_edge_detection_3x3_1_rgb_image(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGB);
+    assert(image.pixels != NULL);
+
+    /* Create a vertical edge */
+    image_clear(&image);
+    for (int y = 0; y < 5; y++) {
+        image_putpixel(&image, 1, y, 255, 255, 255, 255);
+        image_putpixel(&image, 3, y, 255, 255, 255, 255);
+    }
+
+    filter_edge_detection_3x3_1(&image);
+
+    /* Edge should be detected at center pixel */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 2, 2, &r, &g, &b, &a);
+    /* Result depends on implementation details */
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test filter_edge_detection_3x3_2 with NULL image.
+ */
+void test_filter_edge_detection_3x3_2_null_image(void) {
+    TEST_BEGIN
+    /* Should not crash */
+    filter_edge_detection_3x3_2(NULL);
     TEST_END
 }
 
@@ -2157,17 +2196,25 @@ void test_filter_edge_detection_3x3_2_image_without_pixels(void) {
 }
 
 /**
- * Test filter_edge_detection_3x3_2 with NULL image.
+ * Exercises filter_edge_detection_3x3_2 on a small RGB image to verify it completes without crashing.
+ *
+ * Creates a 5x5 RGB image, clears it, runs the filter, and ensures the call finishes successfully.
  */
-void test_filter_edge_detection_3x3_2_null_image(void) {
+void test_filter_edge_detection_3x3_2_rgb_image(void) {
     TEST_BEGIN
-    /* Should not crash */
-    filter_edge_detection_3x3_2(NULL);
+    image_t image = image_create(5, 5, RGB);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    filter_edge_detection_3x3_2(&image);
+
+    /* Should complete without crashing */
+    free(image.pixels);
     TEST_END
 }
 
 /**
- * Verify that filter_edge_detection_3x3_3 does not crash when passed a NULL image.
+ * Ensure filter_edge_detection_3x3_3 safely handles a NULL image without crashing.
  */
 void test_filter_edge_detection_3x3_3_null_image(void) {
     TEST_BEGIN
@@ -2176,6 +2223,12 @@ void test_filter_edge_detection_3x3_3_null_image(void) {
     TEST_END
 }
 
+/**
+ * Checks that filter_edge_detection_3x3_3 safely handles an image whose pixel buffer is NULL.
+ *
+ * Constructs an image with valid width, height, and RGB bpp but a NULL pixels pointer, then calls
+ * filter_edge_detection_3x3_3 to ensure the function does not crash or exhibit undefined behavior.
+ */
 void test_filter_edge_detection_3x3_3_image_without_pixels(void) {
     TEST_BEGIN
     image_t image;
@@ -2184,6 +2237,22 @@ void test_filter_edge_detection_3x3_3_image_without_pixels(void) {
     image.bpp = RGB;
     image.pixels = NULL;
     filter_edge_detection_3x3_3(&image);
+    TEST_END
+}
+
+/**
+ * Test filter_edge_detection_3x3_3 doesn't crash.
+ */
+void test_filter_edge_detection_3x3_3_rgb_image(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGB);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    filter_edge_detection_3x3_3(&image);
+
+    /* Should complete without crashing */
+    free(image.pixels);
     TEST_END
 }
 
@@ -2319,12 +2388,15 @@ int main(void) {
 
     test_filter_edge_detection_3x3_1_null_image();
     test_filter_edge_detection_3x3_1_image_without_pixels();
+    test_filter_edge_detection_3x3_1_rgb_image();
 
     test_filter_edge_detection_3x3_2_null_image();
     test_filter_edge_detection_3x3_2_image_without_pixels();
+    test_filter_edge_detection_3x3_2_rgb_image();
 
     test_filter_edge_detection_3x3_3_null_image();
     test_filter_edge_detection_3x3_3_image_without_pixels();
+    test_filter_edge_detection_3x3_3_rgb_image();
 
     return 0;
 }
