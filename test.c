@@ -2193,6 +2193,22 @@ void test_filter_edge_detection_3x3_2_null_image(void) {
 }
 
 /**
+ * Test filter_edge_detection_3x3_2 doesn't crash.
+ */
+void test_filter_edge_detection_3x3_2_rgb_image(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGB);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    filter_edge_detection_3x3_2(&image);
+
+    /* Should complete without crashing */
+    free(image.pixels);
+    TEST_END
+}
+
+/**
  * Verify that filter_edge_detection_3x3_3 does not crash when passed a NULL image.
  */
 void test_filter_edge_detection_3x3_3_null_image(void) {
@@ -2349,6 +2365,7 @@ int main(void) {
 
     test_filter_edge_detection_3x3_2_null_image();
     test_filter_edge_detection_3x3_2_image_without_pixels();
+    test_filter_edge_detection_3x3_2_rgb_image();
 
     test_filter_edge_detection_3x3_3_null_image();
     test_filter_edge_detection_3x3_3_image_without_pixels();
