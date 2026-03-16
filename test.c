@@ -2128,6 +2128,9 @@ void test_filter_edge_detection_3x3_1_null_image(void) {
     TEST_END
 }
 
+/**
+ * Test filter_edge_detection_3x3_1 with image without pixels.
+ */
 void test_filter_edge_detection_3x3_1_image_without_pixels(void) {
     TEST_BEGIN
     image_t image;
@@ -2166,6 +2169,16 @@ void test_filter_edge_detection_3x3_1_rgb_image(void) {
 }
 
 /**
+ * Test filter_edge_detection_3x3_2 with NULL image.
+ */
+void test_filter_edge_detection_3x3_2_null_image(void) {
+    TEST_BEGIN
+    /* Should not crash */
+    filter_edge_detection_3x3_2(NULL);
+    TEST_END
+}
+
+/**
  * Verify that filter_edge_detection_3x3_2 safely handles an image with no pixel buffer.
  *
  * Constructs an image_t with width and height set to 10, bpp set to RGB, and pixels set to NULL,
@@ -2179,16 +2192,6 @@ void test_filter_edge_detection_3x3_2_image_without_pixels(void) {
     image.bpp = RGB;
     image.pixels = NULL;
     filter_edge_detection_3x3_2(&image);
-    TEST_END
-}
-
-/**
- * Test filter_edge_detection_3x3_2 with NULL image.
- */
-void test_filter_edge_detection_3x3_2_null_image(void) {
-    TEST_BEGIN
-    /* Should not crash */
-    filter_edge_detection_3x3_2(NULL);
     TEST_END
 }
 
@@ -2218,6 +2221,12 @@ void test_filter_edge_detection_3x3_3_null_image(void) {
     TEST_END
 }
 
+/**
+ * Verify that filter_edge_detection_3x3_3 safely handles an image with no pixel buffer.
+ *
+ * Constructs an image_t with width and height set to 10, bpp set to RGB, and pixels set to NULL,
+ * then invokes filter_edge_detection_3x3_3 to ensure it handles the missing pixel buffer without error.
+ */
 void test_filter_edge_detection_3x3_3_image_without_pixels(void) {
     TEST_BEGIN
     image_t image;
