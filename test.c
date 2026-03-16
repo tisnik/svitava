@@ -2196,7 +2196,9 @@ void test_filter_edge_detection_3x3_2_image_without_pixels(void) {
 }
 
 /**
- * Test filter_edge_detection_3x3_2 doesn't crash.
+ * Exercises filter_edge_detection_3x3_2 on a small RGB image to verify it completes without crashing.
+ *
+ * Creates a 5x5 RGB image, clears it, runs the filter, and ensures the call finishes successfully.
  */
 void test_filter_edge_detection_3x3_2_rgb_image(void) {
     TEST_BEGIN
@@ -2212,7 +2214,7 @@ void test_filter_edge_detection_3x3_2_rgb_image(void) {
 }
 
 /**
- * Verify that filter_edge_detection_3x3_3 does not crash when passed a NULL image.
+ * Ensure filter_edge_detection_3x3_3 safely handles a NULL image without crashing.
  */
 void test_filter_edge_detection_3x3_3_null_image(void) {
     TEST_BEGIN
@@ -2222,10 +2224,10 @@ void test_filter_edge_detection_3x3_3_null_image(void) {
 }
 
 /**
- * Verify that filter_edge_detection_3x3_3 safely handles an image with no pixel buffer.
+ * Checks that filter_edge_detection_3x3_3 safely handles an image whose pixel buffer is NULL.
  *
- * Constructs an image_t with width and height set to 10, bpp set to RGB, and pixels set to NULL,
- * then invokes filter_edge_detection_3x3_3 to ensure it handles the missing pixel buffer without error.
+ * Constructs an image with valid width, height, and RGB bpp but a NULL pixels pointer, then calls
+ * filter_edge_detection_3x3_3 to ensure the function does not crash or exhibit undefined behavior.
  */
 void test_filter_edge_detection_3x3_3_image_without_pixels(void) {
     TEST_BEGIN
