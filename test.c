@@ -2119,12 +2119,40 @@ void test_filter_sharpen_3x3_grayscale_image(void) {
 }
 
 /**
- * Test filter_edge_detection_3x3_1 with NULL image.
+ * Verify that filter_edge_detection_3x3_1 does not crash when called with a NULL image.
  */
 void test_filter_edge_detection_3x3_1_null_image(void) {
     TEST_BEGIN
     /* Should not crash */
     filter_edge_detection_3x3_1(NULL);
+    TEST_END
+}
+
+void test_filter_edge_detection_3x3_1_image_without_pixels(void) {
+    TEST_BEGIN
+    image_t image;
+    image.width = 10;
+    image.height = 10;
+    image.bpp = RGB;
+    image.pixels = NULL;
+    filter_edge_detection_3x3_1(&image);
+    TEST_END
+}
+
+/**
+ * Verify that filter_edge_detection_3x3_2 safely handles an image with no pixel buffer.
+ *
+ * Constructs an image_t with width and height set to 10, bpp set to RGB, and pixels set to NULL,
+ * then invokes filter_edge_detection_3x3_2 to ensure it handles the missing pixel buffer without error.
+ */
+void test_filter_edge_detection_3x3_2_image_without_pixels(void) {
+    TEST_BEGIN
+    image_t image;
+    image.width = 10;
+    image.height = 10;
+    image.bpp = RGB;
+    image.pixels = NULL;
+    filter_edge_detection_3x3_2(&image);
     TEST_END
 }
 
@@ -2139,12 +2167,23 @@ void test_filter_edge_detection_3x3_2_null_image(void) {
 }
 
 /**
- * Test filter_edge_detection_3x3_3 with NULL image.
+ * Verify that filter_edge_detection_3x3_3 does not crash when passed a NULL image.
  */
 void test_filter_edge_detection_3x3_3_null_image(void) {
     TEST_BEGIN
     /* Should not crash */
     filter_edge_detection_3x3_3(NULL);
+    TEST_END
+}
+
+void test_filter_edge_detection_3x3_3_image_without_pixels(void) {
+    TEST_BEGIN
+    image_t image;
+    image.width = 10;
+    image.height = 10;
+    image.bpp = RGB;
+    image.pixels = NULL;
+    filter_edge_detection_3x3_3(&image);
     TEST_END
 }
 
@@ -2279,8 +2318,13 @@ int main(void) {
     test_filter_sharpen_3x3_grayscale_image();
 
     test_filter_edge_detection_3x3_1_null_image();
+    test_filter_edge_detection_3x3_1_image_without_pixels();
+
     test_filter_edge_detection_3x3_2_null_image();
+    test_filter_edge_detection_3x3_2_image_without_pixels();
+
     test_filter_edge_detection_3x3_3_null_image();
+    test_filter_edge_detection_3x3_3_image_without_pixels();
 
     return 0;
 }
