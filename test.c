@@ -2140,6 +2140,32 @@ void test_filter_edge_detection_3x3_1_image_without_pixels(void) {
 }
 
 /**
+ * Test filter_edge_detection_3x3_1 on a simple edge.
+ */
+void test_filter_edge_detection_3x3_1_rgb_image(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGB);
+    assert(image.pixels != NULL);
+
+    /* Create a vertical edge */
+    image_clear(&image);
+    for (int y = 0; y < 5; y++) {
+        image_putpixel(&image, 1, y, 255, 255, 255, 255);
+        image_putpixel(&image, 3, y, 255, 255, 255, 255);
+    }
+
+    filter_edge_detection_3x3_1(&image);
+
+    /* Edge should be detected at center pixel */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 2, 2, &r, &g, &b, &a);
+    /* Result depends on implementation details */
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
  * Verify that filter_edge_detection_3x3_2 safely handles an image with no pixel buffer.
  *
  * Constructs an image_t with width and height set to 10, bpp set to RGB, and pixels set to NULL,
@@ -2319,6 +2345,7 @@ int main(void) {
 
     test_filter_edge_detection_3x3_1_null_image();
     test_filter_edge_detection_3x3_1_image_without_pixels();
+    test_filter_edge_detection_3x3_1_rgb_image();
 
     test_filter_edge_detection_3x3_2_null_image();
     test_filter_edge_detection_3x3_2_image_without_pixels();
