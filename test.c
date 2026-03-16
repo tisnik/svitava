@@ -2139,6 +2139,17 @@ void test_filter_edge_detection_3x3_1_image_without_pixels(void) {
     TEST_END
 }
 
+void test_filter_edge_detection_3x3_2_image_without_pixels(void) {
+    TEST_BEGIN
+    image_t image;
+    image.width = 10;
+    image.height = 10;
+    image.bpp = RGB;
+    image.pixels = NULL;
+    filter_edge_detection_3x3_2(&image);
+    TEST_END
+}
+
 /**
  * Test filter_edge_detection_3x3_2 with NULL image.
  */
@@ -2293,6 +2304,8 @@ int main(void) {
     test_filter_edge_detection_3x3_1_image_without_pixels();
 
     test_filter_edge_detection_3x3_2_null_image();
+    test_filter_edge_detection_3x3_2_image_without_pixels();
+
     test_filter_edge_detection_3x3_3_null_image();
 
     return 0;
