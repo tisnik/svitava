@@ -2170,6 +2170,17 @@ void test_filter_edge_detection_3x3_3_null_image(void) {
     TEST_END
 }
 
+void test_filter_edge_detection_3x3_3_image_without_pixels(void) {
+    TEST_BEGIN
+    image_t image;
+    image.width = 10;
+    image.height = 10;
+    image.bpp = RGB;
+    image.pixels = NULL;
+    filter_edge_detection_3x3_3(&image);
+    TEST_END
+}
+
 /**
  * Run the complete image processing test suite in a deterministic order.
  *
@@ -2307,6 +2318,7 @@ int main(void) {
     test_filter_edge_detection_3x3_2_image_without_pixels();
 
     test_filter_edge_detection_3x3_3_null_image();
+    test_filter_edge_detection_3x3_3_image_without_pixels();
 
     return 0;
 }
