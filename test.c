@@ -2353,6 +2353,23 @@ void test_filter_horizontal_sobel_operator_3x3_null_image(void) {
 }
 
 /**
+ * Checks that filter_horizontal_sobel_operator_3x3 safely handles an image whose pixel buffer is NULL.
+ *
+ * Constructs an image with valid width, height, and RGB bpp but a NULL pixels pointer, then calls
+ * filter_horizontal_sobel_operator_3x3 to ensure the function does not crash or exhibit undefined behavior.
+ */
+void test_filter_horizontal_sobel_operator_3x3_image_without_pixels(void) {
+    TEST_BEGIN
+    image_t image;
+    image.width = 10;
+    image.height = 10;
+    image.bpp = RGB;
+    image.pixels = NULL;
+    filter_horizontal_sobel_operator_3x3(&image);
+    TEST_END
+}
+
+/**
  * Run the complete image processing test suite in a deterministic order.
  *
  * Executes all unit tests covering image size, creation, cloning, clearing,
@@ -2503,5 +2520,6 @@ int main(void) {
     test_filter_vertical_edge_detection_3x3_rgb_image();
 
     test_filter_horizontal_sobel_operator_3x3_null_image();
+    test_filter_horizontal_sobel_operator_3x3_image_without_pixels();
     return 0;
 }
