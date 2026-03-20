@@ -132,10 +132,10 @@ enum error {
 
 /* All functions that implement fractal renderer must be of this type. */
 typedef int (*t_renderer)(const image_t       *image,
-                       const unsigned char *palette,
-                       double               px,
-                       double               py,
-                       int                  maxiter);
+                          const unsigned char *palette,
+                          double               px,
+                          double               py,
+                          int                  maxiter);
 
 /* All parameters passed to renderer as one structure. It allow us to simply run
  * the renderer in a separate thread. */
@@ -354,7 +354,7 @@ int image_putpixel(image_t *image, int x, int y, unsigned char r,
  * @param a Alpha component (0–255).
  */
 void image_putpixel_fast(image_t *image, int x, int y, unsigned char r,
-                   unsigned char g, unsigned char b, unsigned char a) {
+                         unsigned char g, unsigned char b, unsigned char a) {
     unsigned char *p;
 
     p = image->pixels + (x + y * image->width) * image->bpp;
@@ -566,10 +566,10 @@ int image_vline(image_t *image, int x, int y1, int y2, unsigned char r, unsigned
  * @returns Non-zero if both endpoints lie strictly to the left, above, right, or below the image (i.e., the segment is entirely outside); 0 otherwise.
  */
 static int line_outside_image_area(const image_t *image, int x1, int y1, int x2, int y2) {
-    return (x1 < 0 && x2 < 0) /* line on left side of image */
-        || (y1 < 0 && y2 < 0) /* line above the image */
-        || (x1 >= (int)image->width && x2 >= (int)image->width) /* line on right side of image */
-        || (y1 >= (int)image->height && y2 >= (int)image->height); /* line below the image */
+    return (x1 < 0 && x2 < 0)                                         /* line on left side of image */
+           || (y1 < 0 && y2 < 0)                                      /* line above the image */
+           || (x1 >= (int)image->width && x2 >= (int)image->width)    /* line on right side of image */
+           || (y1 >= (int)image->height && y2 >= (int)image->height); /* line below the image */
 }
 
 /**
@@ -608,7 +608,7 @@ int image_line(image_t *image, int x1, int y1, int x2, int y2, unsigned char r, 
 
     while (1) {
         /* draw pixel only if it is within the image */
-        if (x1 >= 0 && x1 < (int)image->width && y1 >=0 && y1 < (int)image->height) {
+        if (x1 >= 0 && x1 < (int)image->width && y1 >= 0 && y1 < (int)image->height) {
             image_putpixel_fast(image, x1, y1, r, g, b, a);
         }
         /* we reached endpoint */
@@ -1463,10 +1463,10 @@ int image_export_png(unsigned int width, unsigned int height,
                      const unsigned char *pixels, const char *file_name) {
     FILE                *fout;
     const unsigned char *p = pixels;
-    int code = 0;
-    int scanline;
-    png_structp png_ptr = NULL;
-    png_infop info_ptr = NULL;
+    int                  code = 0;
+    int                  scanline;
+    png_structp          png_ptr = NULL;
+    png_infop            info_ptr = NULL;
 
     char *title = NULL;
 
@@ -1476,8 +1476,7 @@ int image_export_png(unsigned int width, unsigned int height,
 
     /* open file for writing in binary mode */
     fout = fopen(file_name, "wb");
-    if (fout == NULL)
-    {
+    if (fout == NULL) {
         fprintf(stderr, "Could not open file %s for writing\n", file_name);
         code = 1;
         goto FINALISE;
@@ -1485,8 +1484,7 @@ int image_export_png(unsigned int width, unsigned int height,
 
     /* initialize write structure */
     png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-    if (png_ptr == NULL)
-    {
+    if (png_ptr == NULL) {
         fprintf(stderr, "Could not allocate write struct\n");
         code = 1;
         goto FINALISE;
@@ -1494,16 +1492,14 @@ int image_export_png(unsigned int width, unsigned int height,
 
     /* initialize info structure */
     info_ptr = png_create_info_struct(png_ptr);
-    if (info_ptr == NULL)
-    {
+    if (info_ptr == NULL) {
         fprintf(stderr, "Could not allocate info struct\n");
         code = 1;
         goto FINALISE;
     }
 
     /* setup Exception handling */
-    if (setjmp(png_jmpbuf(png_ptr)))
-    {
+    if (setjmp(png_jmpbuf(png_ptr))) {
         fprintf(stderr, "Error during png creation\n");
         code = 1;
         goto FINALISE;
@@ -1513,12 +1509,11 @@ int image_export_png(unsigned int width, unsigned int height,
 
     /* write header (8 bit colour depth) */
     png_set_IHDR(png_ptr, info_ptr, width, height,
-            8, PNG_COLOR_TYPE_RGBA, PNG_INTERLACE_NONE,
-            PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+                 8, PNG_COLOR_TYPE_RGBA, PNG_INTERLACE_NONE,
+                 PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
 
     /* set the title */
-    if (title != NULL)
-    {
+    if (title != NULL) {
         png_text title_text;
         title_text.compression = PNG_TEXT_COMPRESSION_NONE;
         title_text.key = "Title";
@@ -1529,8 +1524,7 @@ int image_export_png(unsigned int width, unsigned int height,
     png_write_info(png_ptr, info_ptr);
 
     /* write image data */
-    for (scanline=0 ; scanline<height; scanline++)
-    {
+    for (scanline = 0; scanline < height; scanline++) {
         png_write_row(png_ptr, p);
         /* TODO: not only RGBA! */
         p += width * 4;
@@ -1540,16 +1534,13 @@ int image_export_png(unsigned int width, unsigned int height,
     png_write_end(png_ptr, NULL);
 
 FINALISE:
-    if (fout != NULL)
-    {
+    if (fout != NULL) {
         fclose(fout);
     }
-    if (info_ptr != NULL)
-    {
+    if (info_ptr != NULL) {
         png_free_data(png_ptr, info_ptr, PNG_FREE_ALL, -1);
     }
-    if (png_ptr != NULL)
-    {
+    if (png_ptr != NULL) {
         png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
     }
 
@@ -1565,14 +1556,13 @@ unsigned int read4bytes(const unsigned char *array, int offset)
          | ((unsigned int)array[offset+3] << 24);
 }
 
-image_t image_import_bmp_from_stream(const char *file_name, FILE *fin)
-{
-    image_t image = {0, 0, 0, NULL};
+image_t image_import_bmp_from_stream(const char *file_name, FILE *fin) {
+    image_t       image = {0, 0, 0, NULL};
     unsigned char bmp_header[54];
-    int width, height, bpp;
-    int scanline;
-    size_t read;
-    int x, y;
+    int           width, height, bpp;
+    int           scanline;
+    size_t        read;
+    int           x, y;
 
     read = fread(bmp_header, sizeof(bmp_header), 1, fin);
     if (read < 1) {
@@ -1624,11 +1614,10 @@ image_t image_import_bmp_from_stream(const char *file_name, FILE *fin)
                 p += bpp;
             }
         }
-    }
-    else {
-        int y;
+    } else {
+        int  y;
         char padding_array[4];
-        int padding = (4 - scanline % 4) & 0x03;
+        int  padding = (4 - scanline % 4) & 0x03;
 
         for (y = height - 1; y >= 0; y--) {
             /* pointer to the 1st pixel on scan line */
@@ -1647,7 +1636,7 @@ image_t image_import_bmp_from_stream(const char *file_name, FILE *fin)
             read = fread(padding_array, padding, 1, fin);
             if (read < 1) {
                 free(image.pixels);
-                image.pixels=NULL;
+                image.pixels = NULL;
                 puts("Can not read pixels from BMP file");
                 return image;
             }
@@ -1657,21 +1646,18 @@ image_t image_import_bmp_from_stream(const char *file_name, FILE *fin)
     return image;
 }
 
-image_t image_import_bmp(const char *file_name)
-{
-    FILE *fin;
+image_t image_import_bmp(const char *file_name) {
+    FILE   *fin;
     image_t image = {0, 0, 0, NULL};
 
     fin = fopen(file_name, "rb");
-    if (!fin)
-    {
+    if (!fin) {
         return image;
     }
 
     image = image_import_bmp_from_stream(file_name, fin);
 
-    if (fclose(fin) == EOF)
-    {
+    if (fclose(fin) == EOF) {
         return image;
     }
 
@@ -2059,7 +2045,7 @@ int render_julia_3(const image_t *image, const unsigned char *palette,
  *          OK otherwise
  */
 int render_mandelbrot_4(const image_t *image, const unsigned char *palette,
-                         double zx0, double zy0, int maxiter) {
+                        double zx0, double zy0, int maxiter) {
     int            x, y;
     double         cx, cy;
     double         xmin = -1.5, ymin = -1.5, xmax = 1.5, ymax = 1.5;
@@ -2132,7 +2118,7 @@ int render_mandelbrot_4(const image_t *image, const unsigned char *palette,
  *          OK otherwise
  */
 int render_julia_4(const image_t *image, const unsigned char *palette,
-                    double cx, double cy, int maxiter) {
+                   double cx, double cy, int maxiter) {
     int            x, y;
     double         zx0, zy0;
     double         step_x;
@@ -2197,7 +2183,7 @@ int render_julia_4(const image_t *image, const unsigned char *palette,
  *          OK otherwise
  */
 int render_barnsley_m1(const image_t *image, const unsigned char *palette,
-                        double zx0, double zy0, int maxiter) {
+                       double zx0, double zy0, int maxiter) {
     int            x, y;
     double         cx, cy;
     double         xmin = -2.0, ymin = -2.0, xmax = 2.0, ymax = 2.0;
@@ -2261,7 +2247,7 @@ int render_barnsley_m1(const image_t *image, const unsigned char *palette,
  * escape or reaching `maxiter`.
  */
 int render_barnsley_j1(const image_t *image, const unsigned char *palette,
-                        double cx, double cy, int maxiter) {
+                       double cx, double cy, int maxiter) {
     int            x, y;
     double         zx0, zy0;
     double         xmin = -2.0, ymin = -2.0, xmax = 2.0, ymax = 2.0;
@@ -2332,7 +2318,7 @@ int render_barnsley_j1(const image_t *image, const unsigned char *palette,
  *          OK otherwise
  */
 int render_barnsley_m2(const image_t *image, const unsigned char *palette,
-                        double zx0, double zy0, int maxiter) {
+                       double zx0, double zy0, int maxiter) {
     int            x, y;
     double         cx, cy;
     double         xmin = -2.0, ymin = -2.0, xmax = 2.0, ymax = 2.0;
@@ -2397,7 +2383,7 @@ int render_barnsley_m2(const image_t *image, const unsigned char *palette,
  * number of iterations before escape or reaching maxiter.
  */
 int render_barnsley_j2(const image_t *image, const unsigned char *palette,
-                        double cx, double cy, int maxiter) {
+                       double cx, double cy, int maxiter) {
     int            x, y;
     double         zx0, zy0;
     double         xmin = -2.0, ymin = -2.0, xmax = 2.0, ymax = 2.0;
@@ -2468,7 +2454,7 @@ int render_barnsley_j2(const image_t *image, const unsigned char *palette,
  *          OK otherwise
  */
 int render_barnsley_m3(const image_t *image, const unsigned char *palette,
-                        double zx0, double zy0, int maxiter) {
+                       double zx0, double zy0, int maxiter) {
     int            x, y;
     double         cx, cy;
     double         xmin = -2.0, ymin = -2.0, xmax = 2.0, ymax = 2.0;
@@ -2544,7 +2530,7 @@ int render_barnsley_m3(const image_t *image, const unsigned char *palette,
  * @param maxiter Maximum number of iterations per pixel.
  */
 int render_barnsley_j3(const image_t *image, const unsigned char *palette,
-                        double cx, double cy, int maxiter) {
+                       double cx, double cy, int maxiter) {
     int            x, y;
     double         zx0, zy0;
     double         xmin = -2.0, ymin = -2.0, xmax = 2.0, ymax = 2.0;
@@ -2630,9 +2616,9 @@ void *render_and_save(void *void_parameters) {
     }
 
     write_result = image_export_bmp(renderer_parameters->width,
-                             renderer_parameters->height,
-                             image.pixels,
-                             renderer_parameters->filename, 4);
+                                    renderer_parameters->height,
+                                    image.pixels,
+                                    renderer_parameters->filename, 4);
     if (write_result != 0) {
         fprintf(stderr, "Failed to write %s\n", renderer_parameters->filename);
     }
