@@ -2,8 +2,8 @@
  * Unit tests for functions defined in svitava.c
  */
 
-#include <string.h>
 #include <assert.h>
+#include <string.h>
 
 #include "svitava.c"
 
@@ -1542,7 +1542,7 @@ void test_image_line_coordinates_outside_range(void) {
     assert(result == OK);
 
     /* y1 and y2 are too large */
-    result = image_line(&image, 1, 100 + 1, 0, 100+1, 0, 0, 0, 0);
+    result = image_line(&image, 1, 100 + 1, 0, 100 + 1, 0, 0, 0, 0);
     assert(result == INVALID_COORDINATES);
 
     free(image.pixels);
