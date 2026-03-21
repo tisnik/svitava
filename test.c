@@ -2386,6 +2386,16 @@ void test_filter_horizontal_sobel_operator_3x3_rgb_image(void) {
 }
 
 /**
+ * Ensure filter_vertical_sobel_operator_3x3 safely handles a NULL image without crashing.
+ */
+void test_filter_vertical_sobel_operator_3x3_null_image(void) {
+    TEST_BEGIN
+    /* Should not crash */
+    filter_vertical_sobel_operator_3x3(NULL);
+    TEST_END
+}
+
+/**
  * Run the complete image processing test suite in a deterministic order.
  *
  * Executes all unit tests covering image size, creation, cloning, clearing,
@@ -2538,5 +2548,7 @@ int main(void) {
     test_filter_horizontal_sobel_operator_3x3_null_image();
     test_filter_horizontal_sobel_operator_3x3_image_without_pixels();
     test_filter_horizontal_sobel_operator_3x3_rgb_image();
+
+    test_filter_vertical_sobel_operator_3x3_null_image();
     return 0;
 }
