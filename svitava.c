@@ -2631,11 +2631,12 @@ void *render_and_save(void *void_parameters) {
 int render_all_fractals(void) {
 #define WIDTH 512
 #define HEIGHT 512
-    unsigned char *palette = (unsigned char *)malloc(256 * 3);
+    static unsigned char palette[256*3];
     int            max_threads;
     int            threads_created = 0;
     pthread_t     *threads;
     int            i;
+    renderer_parameters_t parameters[15];
 
     if (palette == NULL) {
         return 1;
@@ -2649,7 +2650,7 @@ int render_all_fractals(void) {
 
     /* NOTE: parameters array must remain valid until all threads complete.
        Do not return from this function until pthread_join completes for all threads. */
-    renderer_parameters_t parameters[] = {
+    static renderer_parameters_t parameters[] = {
         {"Test pattern #1",    "test_palette.bmp",      render_test_palette_image, palette, WIDTH, HEIGHT, 0.0, 0.0, 1000}, 
         {"Test pattern #2",    "test_rgba_1.bmp",       render_test_rgb_image,     palette, WIDTH, HEIGHT, 0.0, 0.0, 0}, 
         {"Test pattern #3",    "test_rgba_2.bmp",       render_test_rgb_image,     palette, WIDTH, HEIGHT, 0.0, 0.0, 255}, 
@@ -2699,7 +2700,6 @@ int render_all_fractals(void) {
     printf("Main program has ended.\n");
 
     free(threads);
-    free(palette);
     return 0;
 }
 
