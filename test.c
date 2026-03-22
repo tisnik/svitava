@@ -2372,6 +2372,29 @@ void test_filter_edge_detection_3x3_3_rgb_image(void) {
 }
 
 /**
+ * Test that filters preserve border pixels unchanged.
+ */
+void test_filter_edge_detection_3x3_3_preserves_border_pixels(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGB);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    /* Set a border pixel to a specific value */
+    image_putpixel(&image, 0, 0, 123, 45, 67, 255);
+
+    filter_edge_detection_3x3_3(&image);
+
+    /* Border pixel should remain unchanged (kernel doesn't cover it) */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 0, 0, &r, &g, &b, &a);
+    assert(r == 123 && g == 45 && b == 67);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
  * Ensure filter_horizontal_edge_detection_3x3 safely handles a NULL image without crashing.
  */
 void test_filter_horizontal_edge_detection_3x3_null_image(void) {
@@ -2689,6 +2712,7 @@ int main(void) {
     test_filter_edge_detection_3x3_3_null_image();
     test_filter_edge_detection_3x3_3_image_without_pixels();
     test_filter_edge_detection_3x3_3_rgb_image();
+    test_filter_edge_detection_3x3_3_preserves_border_pixels();
 
     test_filter_horizontal_edge_detection_3x3_null_image();
     test_filter_horizontal_edge_detection_3x3_image_without_pixels();
