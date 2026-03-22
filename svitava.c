@@ -2708,6 +2708,7 @@ int main(int argc, char **argv) {
     image_t image = image_import_bmp("mandelbrot.bmp");
     image_export_bmp(image.width, image.height, image.pixels, "mandelbrot2.bmp", image.bpp);
     free(image.pixels);
+    return 0;
     /*
     return render_all_fractals();
     */
