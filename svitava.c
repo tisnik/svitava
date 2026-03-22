@@ -2636,17 +2636,6 @@ int render_all_fractals(void) {
     int            threads_created = 0;
     pthread_t     *threads;
     int            i;
-    renderer_parameters_t parameters[15];
-
-    if (palette == NULL) {
-        return 1;
-    }
-
-    for (i = 0; i <= 255; i++) {
-        palette[i * 3] = i * 2;
-        palette[i * 3 + 1] = i * 3;
-        palette[i * 3 + 2] = i * 5;
-    }
 
     /* NOTE: parameters array must remain valid until all threads complete.
        Do not return from this function until pthread_join completes for all threads. */
@@ -2668,11 +2657,16 @@ int render_all_fractals(void) {
         {"Barnsley J3",        "barnsley_j3.bmp",       render_barnsley_j3,        palette, WIDTH, HEIGHT, -0.09375, 0.453125, 1000},
     };
 
+    for (i = 0; i <= 255; i++) {
+        palette[i * 3] = i * 2;
+        palette[i * 3 + 1] = i * 3;
+        palette[i * 3 + 2] = i * 5;
+    }
+
     max_threads = sizeof(parameters) / sizeof(renderer_parameters_t);
     threads = (pthread_t *)malloc(max_threads * sizeof(pthread_t));
     if (threads == NULL) {
         fprintf(stderr, "Failed to allocate threads array\n");
-        free(palette);
         return 1;
     }
 
