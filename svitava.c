@@ -83,11 +83,11 @@ render_julia_3
 
 */
 
+#include <pthread.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <pthread.h>
 
 #ifdef SUPPORT_PNG
 #include <png.h>
@@ -1548,8 +1548,7 @@ FINALISE:
 }
 #endif
 
-unsigned int read4bytes(const unsigned char *array, int offset)
-{
+unsigned int read4bytes(const unsigned char *array, int offset) {
     return (unsigned int)array[offset]
          | ((unsigned int)array[offset+1] << 8)
          | ((unsigned int)array[offset+2] << 16)
@@ -2631,30 +2630,30 @@ void *render_and_save(void *void_parameters) {
 int render_all_fractals(void) {
 #define WIDTH 512
 #define HEIGHT 512
-    static unsigned char palette[256*3];
-    int            max_threads;
-    int            threads_created = 0;
-    pthread_t     *threads;
-    int            i;
+    static unsigned char palette[256 * 3];
+    int                  max_threads;
+    int                  threads_created = 0;
+    pthread_t           *threads;
+    int                  i;
 
     /* NOTE: parameters array must remain valid until all threads complete.
        Do not return from this function until pthread_join completes for all threads. */
     static renderer_parameters_t parameters[] = {
-        {"Test pattern #1",    "test_palette.bmp",      render_test_palette_image, palette, WIDTH, HEIGHT, 0.0, 0.0, 1000}, 
-        {"Test pattern #2",    "test_rgba_1.bmp",       render_test_rgb_image,     palette, WIDTH, HEIGHT, 0.0, 0.0, 0}, 
-        {"Test pattern #3",    "test_rgba_2.bmp",       render_test_rgb_image,     palette, WIDTH, HEIGHT, 0.0, 0.0, 255}, 
-        {"Classic Mandelbrot", "mandelbrot.bmp",        render_mandelbrot,         palette, WIDTH, HEIGHT, 0.0, 0.0, 1000},
-        {"Classic Julia",      "julia.bmp",             render_julia,              palette, WIDTH, HEIGHT, -0.207190825000000012496, 0.676656624999999999983, 1000},
-        {"Mandelbrot z=z^3+c", "mandelbrot_3.bmp",      render_mandelbrot_3,       palette, WIDTH, HEIGHT, 0.0, 0.0, 1000},
-        {"Julia z=z^3+c",      "julia_3.bmp",           render_julia_3,            palette, WIDTH, HEIGHT, 0.12890625, -0.796875, 1000},
-        {"Mandelbrot z=z^4+c", "mandelbrot_4.bmp",      render_mandelbrot_4,       palette, WIDTH, HEIGHT, 0.0, 0.0, 1000},
-        {"Julia z=z^4+c",      "julia_4.bmp",           render_julia_4,            palette, WIDTH, HEIGHT, 0.375, -0.97265625, 1000},
-        {"Barnsley M1",        "barnsley_m1.bmp",       render_barnsley_m1,        palette, WIDTH, HEIGHT, 0.0, 0.0, 1000},
-        {"Barnsley J1",        "barnsley_j1.bmp",       render_barnsley_j1,        palette, WIDTH, HEIGHT, 0.4, 1.5, 1000},
-        {"Barnsley M2",        "barnsley_m2.bmp",       render_barnsley_m2,        palette, WIDTH, HEIGHT, 0.0, 0.0, 1000},
-        {"Barnsley J2",        "barnsley_j2.bmp",       render_barnsley_j2,        palette, WIDTH, HEIGHT, 1.109375, 0.421875, 1000},
-        {"Barnsley M3",        "barnsley_m3.bmp",       render_barnsley_m3,        palette, WIDTH, HEIGHT, 0.0, 0.0, 1000},
-        {"Barnsley J3",        "barnsley_j3.bmp",       render_barnsley_j3,        palette, WIDTH, HEIGHT, -0.09375, 0.453125, 1000},
+        {"Test pattern #1",    "test_palette.bmp", render_test_palette_image, palette, WIDTH, HEIGHT, 0.0, 0.0, 1000},
+        {"Test pattern #2",    "test_rgba_1.bmp",  render_test_rgb_image,     palette, WIDTH, HEIGHT, 0.0, 0.0, 0},
+        {"Test pattern #3",    "test_rgba_2.bmp",  render_test_rgb_image,     palette, WIDTH, HEIGHT, 0.0, 0.0, 255},
+        {"Classic Mandelbrot", "mandelbrot.bmp",   render_mandelbrot,         palette, WIDTH, HEIGHT, 0.0, 0.0, 1000},
+        {"Classic Julia",      "julia.bmp",        render_julia,              palette, WIDTH, HEIGHT, -0.207190825000000012496, 0.676656624999999999983, 1000},
+        {"Mandelbrot z=z^3+c", "mandelbrot_3.bmp", render_mandelbrot_3,       palette, WIDTH, HEIGHT, 0.0, 0.0, 1000},
+        {"Julia z=z^3+c",      "julia_3.bmp",      render_julia_3,            palette, WIDTH, HEIGHT, 0.12890625, -0.796875, 1000},
+        {"Mandelbrot z=z^4+c", "mandelbrot_4.bmp", render_mandelbrot_4,       palette, WIDTH, HEIGHT, 0.0, 0.0, 1000},
+        {"Julia z=z^4+c",      "julia_4.bmp",      render_julia_4,            palette, WIDTH, HEIGHT, 0.375, -0.97265625, 1000},
+        {"Barnsley M1",        "barnsley_m1.bmp",  render_barnsley_m1,        palette, WIDTH, HEIGHT, 0.0, 0.0, 1000},
+        {"Barnsley J1",        "barnsley_j1.bmp",  render_barnsley_j1,        palette, WIDTH, HEIGHT, 0.4, 1.5, 1000},
+        {"Barnsley M2",        "barnsley_m2.bmp",  render_barnsley_m2,        palette, WIDTH, HEIGHT, 0.0, 0.0, 1000},
+        {"Barnsley J2",        "barnsley_j2.bmp",  render_barnsley_j2,        palette, WIDTH, HEIGHT, 1.109375, 0.421875, 1000},
+        {"Barnsley M3",        "barnsley_m3.bmp",  render_barnsley_m3,        palette, WIDTH, HEIGHT, 0.0, 0.0, 1000},
+        {"Barnsley J3",        "barnsley_j3.bmp",  render_barnsley_j3,        palette, WIDTH, HEIGHT, -0.09375, 0.453125, 1000},
     };
 
     for (i = 0; i <= 255; i++) {
