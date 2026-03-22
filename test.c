@@ -1913,6 +1913,29 @@ void test_filter_smooth_3x3_block_grayscale_image(void) {
 }
 
 /**
+ * Test that filters preserve border pixels unchanged.
+ */
+void test_filter_smooth_3x3_preserves_border_pixels(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGB);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    /* Set a border pixel to a specific value */
+    image_putpixel(&image, 0, 0, 123, 45, 67, 255);
+
+    filter_smooth_3x3_block(&image);
+
+    /* Border pixel should remain unchanged (kernel doesn't cover it) */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 0, 0, &r, &g, &b, &a);
+    assert(r == 123 && g == 45 && b == 67);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
  * Test filter_smooth_3x3_gauss with NULL image.
  */
 void test_filter_smooth_3x3_gauss_null_image(void) {
@@ -2545,6 +2568,7 @@ int main(void) {
     test_filter_smooth_3x3_block_rgb_image();
     test_filter_smooth_3x3_block_rgba_image();
     test_filter_smooth_3x3_block_grayscale_image();
+    test_filter_smooth_3x3_preserves_border_pixels();
 
     test_filter_smooth_3x3_gauss_null_image();
     test_filter_smooth_3x3_gauss_image_without_pixels();
