@@ -1913,6 +1913,29 @@ void test_filter_smooth_3x3_block_grayscale_image(void) {
 }
 
 /**
+ * Test that filters preserve border pixels unchanged.
+ */
+void test_filter_smooth_3x3_preserves_border_pixels(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGB);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    /* Set a border pixel to a specific value */
+    image_putpixel(&image, 0, 0, 123, 45, 67, 255);
+
+    filter_smooth_3x3_block(&image);
+
+    /* Border pixel should remain unchanged (kernel doesn't cover it) */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 0, 0, &r, &g, &b, &a);
+    assert(r == 123 && g == 45 && b == 67);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
  * Test filter_smooth_3x3_gauss with NULL image.
  */
 void test_filter_smooth_3x3_gauss_null_image(void) {
@@ -2005,6 +2028,29 @@ void test_filter_smooth_3x3_gauss_grayscale_image(void) {
     assert(r == 63);
     assert(g == 63);
     assert(b == 63);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test that filters preserve border pixels unchanged.
+ */
+void test_filter_smooth_3x3_gauss_preserves_border_pixels(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGB);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    /* Set a border pixel to a specific value */
+    image_putpixel(&image, 0, 0, 123, 45, 67, 255);
+
+    filter_smooth_3x3_gauss(&image);
+
+    /* Border pixel should remain unchanged (kernel doesn't cover it) */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 0, 0, &r, &g, &b, &a);
+    assert(r == 123 && g == 45 && b == 67);
 
     free(image.pixels);
     TEST_END
@@ -2119,6 +2165,29 @@ void test_filter_sharpen_3x3_grayscale_image(void) {
 }
 
 /**
+ * Test that filters preserve border pixels unchanged.
+ */
+void test_filter_sharpen_3x3_preserves_border_pixels(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGB);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    /* Set a border pixel to a specific value */
+    image_putpixel(&image, 0, 0, 123, 45, 67, 255);
+
+    filter_sharpen_3x3(&image);
+
+    /* Border pixel should remain unchanged (kernel doesn't cover it) */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 0, 0, &r, &g, &b, &a);
+    assert(r == 123 && g == 45 && b == 67);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
  * Verify that filter_edge_detection_3x3_1 does not crash when called with a NULL image.
  */
 void test_filter_edge_detection_3x3_1_null_image(void) {
@@ -2163,6 +2232,29 @@ void test_filter_edge_detection_3x3_1_rgb_image(void) {
     unsigned char r, g, b, a;
     image_getpixel(&image, 2, 2, &r, &g, &b, &a);
     /* Result depends on implementation details */
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test that filters preserve border pixels unchanged.
+ */
+void test_filter_edge_detection_3x3_1_preserves_border_pixels(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGB);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    /* Set a border pixel to a specific value */
+    image_putpixel(&image, 0, 0, 123, 45, 67, 255);
+
+    filter_edge_detection_3x3_1(&image);
+
+    /* Border pixel should remain unchanged (kernel doesn't cover it) */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 0, 0, &r, &g, &b, &a);
+    assert(r == 123 && g == 45 && b == 67);
 
     free(image.pixels);
     TEST_END
@@ -2214,6 +2306,29 @@ void test_filter_edge_detection_3x3_2_rgb_image(void) {
 }
 
 /**
+ * Test that filters preserve border pixels unchanged.
+ */
+void test_filter_edge_detection_3x3_2_preserves_border_pixels(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGB);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    /* Set a border pixel to a specific value */
+    image_putpixel(&image, 0, 0, 123, 45, 67, 255);
+
+    filter_edge_detection_3x3_2(&image);
+
+    /* Border pixel should remain unchanged (kernel doesn't cover it) */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 0, 0, &r, &g, &b, &a);
+    assert(r == 123 && g == 45 && b == 67);
+
+    free(image.pixels);
+    TEST_END
+}
+
+/**
  * Ensure filter_edge_detection_3x3_3 safely handles a NULL image without crashing.
  */
 void test_filter_edge_detection_3x3_3_null_image(void) {
@@ -2252,6 +2367,29 @@ void test_filter_edge_detection_3x3_3_rgb_image(void) {
     filter_edge_detection_3x3_3(&image);
 
     /* Should complete without crashing */
+    free(image.pixels);
+    TEST_END
+}
+
+/**
+ * Test that filters preserve border pixels unchanged.
+ */
+void test_filter_edge_detection_3x3_3_preserves_border_pixels(void) {
+    TEST_BEGIN
+    image_t image = image_create(5, 5, RGB);
+    assert(image.pixels != NULL);
+    image_clear(&image);
+
+    /* Set a border pixel to a specific value */
+    image_putpixel(&image, 0, 0, 123, 45, 67, 255);
+
+    filter_edge_detection_3x3_3(&image);
+
+    /* Border pixel should remain unchanged (kernel doesn't cover it) */
+    unsigned char r, g, b, a;
+    image_getpixel(&image, 0, 0, &r, &g, &b, &a);
+    assert(r == 123 && g == 45 && b == 67);
+
     free(image.pixels);
     TEST_END
 }
@@ -2545,30 +2683,36 @@ int main(void) {
     test_filter_smooth_3x3_block_rgb_image();
     test_filter_smooth_3x3_block_rgba_image();
     test_filter_smooth_3x3_block_grayscale_image();
+    test_filter_smooth_3x3_preserves_border_pixels();
 
     test_filter_smooth_3x3_gauss_null_image();
     test_filter_smooth_3x3_gauss_image_without_pixels();
     test_filter_smooth_3x3_gauss_rgb_image();
     test_filter_smooth_3x3_gauss_rgba_image();
     test_filter_smooth_3x3_gauss_grayscale_image();
+    test_filter_smooth_3x3_gauss_preserves_border_pixels();
 
     test_filter_sharpen_3x3_null_image();
     test_filter_sharpen_3x3_image_without_pixels();
     test_filter_sharpen_3x3_rgb_image();
     test_filter_sharpen_3x3_rgba_image();
     test_filter_sharpen_3x3_grayscale_image();
+    test_filter_sharpen_3x3_preserves_border_pixels();
 
     test_filter_edge_detection_3x3_1_null_image();
     test_filter_edge_detection_3x3_1_image_without_pixels();
     test_filter_edge_detection_3x3_1_rgb_image();
+    test_filter_edge_detection_3x3_1_preserves_border_pixels();
 
     test_filter_edge_detection_3x3_2_null_image();
     test_filter_edge_detection_3x3_2_image_without_pixels();
     test_filter_edge_detection_3x3_2_rgb_image();
+    test_filter_edge_detection_3x3_2_preserves_border_pixels();
 
     test_filter_edge_detection_3x3_3_null_image();
     test_filter_edge_detection_3x3_3_image_without_pixels();
     test_filter_edge_detection_3x3_3_rgb_image();
+    test_filter_edge_detection_3x3_3_preserves_border_pixels();
 
     test_filter_horizontal_edge_detection_3x3_null_image();
     test_filter_horizontal_edge_detection_3x3_image_without_pixels();
